@@ -1,6 +1,4 @@
 import abc
-import os
-
 
 class Vocab(abc.ABC):
     UNKNOWN_WORD = "UUUNKKK"
@@ -25,9 +23,6 @@ class Vocab(abc.ABC):
 
 
 class TokenVocab(Vocab):
-    BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
-    VOCAB_PATH = os.path.join(BASE_PATH, 'vocab.txt')
-
     def __init__(self, train_file: str, task: str):
         self.train_file = train_file
         self.task = task
@@ -50,3 +45,17 @@ class TokenVocab(Vocab):
         labels.add('O')
         return words, labels
 
+
+class CharVocab(Vocab):
+    def __init__(self, train_file: str):
+        self.train_file = train_file
+        super().__init__()
+
+    def get_unique(self):
+        labels = {'0', '1'}
+        nums = [str(i) for i in range(1, 10)]
+        char = ['a', 'b', 'c', 'd']
+        char += nums
+        words = set(char)
+
+        return words, labels
