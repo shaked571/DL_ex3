@@ -1,5 +1,6 @@
 import abc
 
+
 class Vocab(abc.ABC):
     UNKNOWN_WORD = "UUUNKKK"
 
@@ -29,7 +30,6 @@ class TokenVocab(Vocab):
         self.separator = " " if self.task == "pos" else "\t"
         super().__init__()
 
-
     def get_unique(self):
         words = set()
         labels = set()
@@ -46,7 +46,7 @@ class TokenVocab(Vocab):
         return words, labels
 
 
-class CharVocab(Vocab):
+class SeqVocab(Vocab):
     def __init__(self, train_file: str):
         self.train_file = train_file
         super().__init__()

@@ -2,6 +2,8 @@ import os
 from dataclasses import dataclass
 from typing import List, Optional
 from torch.utils.data import DataLoader, Dataset
+import torch
+from vocab import Vocab
 
 
 @dataclass
@@ -17,6 +19,7 @@ class InputExample:
     words: List[str]
     labels: Optional[List[str]]
 
+
 class TokenDataFile(Dataset):
     BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
@@ -31,3 +34,32 @@ class TokenDataFile(Dataset):
         self.sub_words = sub_words
         self.char_vocab = char_vocab
         self.data: List[InputExample] = self.read_examples_from_file()
+
+
+class SeqDataFile(Dataset):
+    BASE_PATH = os.path.dirname(__file__)
+
+    def __init__(self, train_file, vocab: Vocab):
+        self.train_path = os.path.join(self.BASE_PATH, train_file)
+        self.vocab = vocab
+        self.examples, self.labels = self.get_examples_and_labels()
+
+    def get_examples_and_labels(self):
+        examples = []
+        labels = []
+        with open(self.train_path, mode="r") as f:
+            lines = f.readlines()
+        for line in lines:
+            example, label = line.strip().split("\t")
+            examples.append(example)
+            labels.append(label)
+
+        return examples, labels
+
+    def __getitem__(self, index):
+        word = self.examples[index]
+        label = self.labels[index]
+        words_tensor = torch.tensor([self.vocab.get_word_index(w) for w in word]).to(torch.int64)
+        label_tensor = torch.tensor([self.vocab.label2i[label]]).to(torch.int64)
+
+        return words_tensor, label_tensor
