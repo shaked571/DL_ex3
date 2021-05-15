@@ -6,6 +6,7 @@ class Vocab(abc.ABC):
 
     def __init__(self, task):
         self.task = task
+        self.separator = " " if self.task == "pos" else "\t"
         self.words, self.labels = self.get_unique()
         self.vocab_size = len(self.words)
         self.num_of_labels = len(self.labels)
@@ -27,7 +28,6 @@ class Vocab(abc.ABC):
 class TokenVocab(Vocab):
     def __init__(self, train_file: str, task: str):
         self.train_file = train_file
-        self.separator = " " if self.task == "pos" else "\t"
         super().__init__(task)
 
     def get_unique(self):
