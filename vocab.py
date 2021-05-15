@@ -4,7 +4,8 @@ import abc
 class Vocab(abc.ABC):
     UNKNOWN_WORD = "UUUNKKK"
 
-    def __init__(self):
+    def __init__(self, task):
+        self.task = task
         self.words, self.labels = self.get_unique()
         self.vocab_size = len(self.words)
         self.num_of_labels = len(self.labels)
@@ -26,9 +27,8 @@ class Vocab(abc.ABC):
 class TokenVocab(Vocab):
     def __init__(self, train_file: str, task: str):
         self.train_file = train_file
-        self.task = task
         self.separator = " " if self.task == "pos" else "\t"
-        super().__init__()
+        super().__init__(task)
 
     def get_unique(self):
         words = set()
@@ -47,9 +47,8 @@ class TokenVocab(Vocab):
 
 
 class SeqVocab(Vocab):
-    def __init__(self, train_file: str):
-        self.train_file = train_file
-        super().__init__()
+    def __init__(self, task: str):
+        super().__init__(task)
 
     def get_unique(self):
         labels = {'0', '1'}

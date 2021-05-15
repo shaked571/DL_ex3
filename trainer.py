@@ -1,14 +1,19 @@
 from typing import List, Optional
 import torch
 import torch.nn as nn
+import torch.nn as nn
+from vocab import Vocab, SeqVocab
+import torch
 from torch.utils.data import DataLoader, Dataset
-from DataFiles import TokenDataFile
+from torch import optim
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
 
 class Trainer:
 
-    def __init__(self, model: nn.Module, train_data: DataFile, dev_data: DataFile, vocab: Vocab, n_ep=1,
-                 optimizer='AdamW', train_batch_size=8, steps_to_eval=30000, lr=0.01, filter_num=30, window_size=3, part=None):
+    def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab, n_ep=1,
+                 optimizer='AdamW', train_batch_size=32, steps_to_eval=30000, lr=0.01, filter_num=30, window_size=3, part=None):
         self.part = part
         self.model = model
         self.dev_batch_size = 128
