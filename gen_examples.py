@@ -61,10 +61,10 @@ def main(pos_num, neg_num, file_name, add_tag):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('-p', '--pos', type=int, required=True)
-    parser.add_argument('-n', '--neg', type=int, required=True)
-    parser.add_argument('-f', '--file_name', type=str, required=False)
-    parser.add_argument('-t', '--add_tag', action='store_true')
+    parser.add_argument('-p', '--pos', help="Number of positive examples", type=int, required=True)
+    parser.add_argument('-n', '--neg', help="Number of negative examples", type=int, required=True)
+    parser.add_argument('-f', '--file_name', help="Output file name", type=str, required=False)
+    parser.add_argument('-t', '--add_tag', help="Add tags for the output file", action='store_true')
 
     args = parser.parse_args()
 
