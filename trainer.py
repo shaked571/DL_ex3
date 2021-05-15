@@ -1,6 +1,4 @@
 from typing import List, Optional
-import torch
-import torch.nn as nn
 import torch.nn as nn
 from vocab import Vocab, SeqVocab
 import torch
@@ -8,7 +6,17 @@ from torch.utils.data import DataLoader, Dataset
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 
+def pad_collate(batch):
+    (xx, yy) = zip(*batch)
+    x_lens = [len(x) for x in xx]
+    y_lens = [len(y) for y in yy]
+
+    xx_pad = pad_sequence(xx, batch_first=True, padding_value=0)
+    yy_pad = pad_sequence(yy, batch_first=True, padding_value=0)
+
+    return xx_pad, yy_pad, x_lens, y_lens
 
 class Trainer:
 
@@ -17,7 +25,7 @@ class Trainer:
         self.part = part
         self.model = model
         self.dev_batch_size = 128
-        self.train_data = DataLoader(train_data, batch_size=train_batch_size, shuffle=True)
+        self.train_data = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=pad_collate)
         self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size, )
         self.vocab = vocab
         if optimizer == "SGD":
@@ -52,13 +60,14 @@ class Trainer:
             train_loss = 0.0
             step_loss = 0
             self.model.train()  # prep model for training
-            for step, (data, target) in tqdm(enumerate(self.train_data), total=len(self.train_data)):
+            for step, (data, target, data_lens, target_lens) in tqdm(enumerate(self.train_data), total=len(self.train_data)):
                 data = data.to(self.device)
+
                 target = target.to(self.device)
                 # clear the gradients of all optimized variables
                 self.optimizer.zero_grad()
                 # forward pass: compute predicted outputs by passing inputs to the model
-                output = self.model(data)  # Eemnded Data Tensor size (1,5)
+                output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
                 # calculate the loss
                 loss = self.loss_func(output, target.view(-1))
                 # backward pass: compute gradient of the loss with respect to model parameters
@@ -68,7 +77,7 @@ class Trainer:
                 # update running training loss
                 train_loss += loss.item() * data.size(0)
                 step_loss += loss.item() * data.size(0)
-                if step % self.steps_to_eval == 0:
+                if step % self.steps_to_eval == 0 and step !=0:
                     print(f"in step: {step} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
@@ -86,6 +95,9 @@ class Trainer:
             all_target = []
             for eval_step, (data, target) in tqdm(enumerate(self.dev_data), total=len(self.dev_data),
                                                   desc=f"dev step {step} loop"):
+                if self.dev_data.batch_size and self.train_data.batch_size > 1:
+                    data = pad_sequence(data)
+
                 data = data.to(self.device)
                 target = target.to(self.device)
                 output = self.model(data)

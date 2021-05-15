@@ -21,14 +21,12 @@ class BiLSTMVanila(nn.Module):
                             bidirectional=True)
         self.relu = nn.ReLU()
         self.linear = nn.Linear(hidden_dim, self.vocab.num_of_labels)
-        # self.linear1 = nn.Linear(self.embed_dim * 5, self.hidden_dim)
-        # self.tanh = nn.Tanh()
-        # self.linear2 = nn.Linear(self.hidden_dim, self.vocab.num_of_labels)
 
     def forward(self, x):
         out = self.embedding(x)
         out = out.view(out.size(0), -1)
-        out, (h_n, c_n) = self.blstm(out)
+        out, (last_hidden_state, c_n) = self.blstm(out)
+        # self.hidden2label(lstm_out[-1])
         out = self.tanh(out)
         out = self.linear2(out)
 

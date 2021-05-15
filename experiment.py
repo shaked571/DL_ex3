@@ -1,10 +1,11 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+
 from vocab import Vocab, SeqVocab
 from DataFiles import SeqDataFile
 import argparse
 from trainer import Trainer
-
 
 class SeqLstm(nn.Module):
 
@@ -28,15 +29,11 @@ class SeqLstm(nn.Module):
         self.tanh = nn.Tanh()
         self.linear2 = nn.Linear(self.hidden_dim, self.vocab.num_of_labels)
 
-    def forward(self, x):
+    def forward(self, x, x_lens):
         embeds = self.word_embeddings(x)
-        out, _ = self.lstm(embeds.view(len(x), 1, -1))
-        # out = self.hidden(out.view(len(x), -1))
-        # out = F.log_softmax(out, dim=1)
-
-        # out = out.view(len(x), -1)
-        out = out[-1][-1]
-        out = self.linear1(out)
+        x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
+        out, (ht, ct) = self.lstm(x_packed)
+        out = self.linear1(ht[-1])
         out = self.tanh(out)
         out = self.linear2(out)
         return out
@@ -53,7 +50,7 @@ def main(train_file, test_file, optimizer, batch_size, l_r, hidden_dim):
     trainer = Trainer(model=model,
                       train_data=train_df,
                       dev_data=dev_df,
-                      train_batch_size=None,
+                      train_batch_size=batch_size,
                       vocab=vocab,
                       n_ep=5)
     trainer.train()
@@ -63,12 +60,12 @@ def main(train_file, test_file, optimizer, batch_size, l_r, hidden_dim):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('-t', '--train_file', help="train file name", type=str, required=True)
-    parser.add_argument('-d', '--dev_file', help="dev file name", type=str, required=True)
-    parser.add_argument('--optimizer', type=str, required=False)
-    parser.add_argument('--batch_size', type=int, required=False)
-    parser.add_argument('--l_r', type=float, required=False)
-    parser.add_argument('--hidden_dim', type=int, required=False)
+    parser.add_argument('train_file',help="train file name", type=str)
+    parser.add_argument('dev_file', help="dev file name", type=str)
+    parser.add_argument('-o', '--optimizer', type=str, required=False)
+    parser.add_argument('-b', '--batch_size', type=int, required=False)
+    parser.add_argument('-l', '--l_r', type=float, required=False)
+    parser.add_argument('-h', '--hidden_dim', type=int, required=False)
 
     args = parser.parse_args()
 

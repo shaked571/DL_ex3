@@ -1,20 +1,16 @@
 import argparse
+from typing import List
+
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 import torch
 from torch import optim
 from torch import nn
+
 from torch.utils.data import DataLoader, Dataset
 
-import numpy as np
-import os
-from math import sqrt
-
-
-
-
-
+from vocab import Vocab
 
 
 class Trainer:
@@ -40,8 +36,8 @@ class Trainer:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         self.model_args = {"part": self.part, "task": self.vocab.task, "lr": lr, "epoch": self.n_epochs,
-                           "batch_size": train_batch_size, "filter_num": filter_num, "window_size": window_size,
-                           "steps_to_eval": self.steps_to_eval, "optim": optimizer, "hidden_dim": self.model.hidden_dim}
+                           "batch_size": train_batch_size,"steps_to_eval": self.steps_to_eval,
+                           "optim": optimizer, "hidden_dim": self.model.hidden_dim}
         self.writer = SummaryWriter(log_dir=f"tensor_board/{self.suffix_run()}")
 
         self.saved_model_path = f"{self.suffix_run()}.bin"

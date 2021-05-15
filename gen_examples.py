@@ -60,7 +60,7 @@ def main(pos_num, neg_num, file_name, add_tag):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--pos', help="Number of positive examples", type=int, required=True)
     parser.add_argument('-n', '--neg', help="Number of negative examples", type=int, required=True)
     parser.add_argument('-f', '--file_name', help="Output file name", type=str, required=False)

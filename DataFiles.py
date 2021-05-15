@@ -20,20 +20,24 @@ class InputExample:
     labels: Optional[List[str]]
 
 
-class TokenDataFile(Dataset):
-    BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+class PreProcessor(object):
+    pass
 
-    def __init__(self, task: str, data_set, pre_processor: PreProcessor, vocab: Vocab,
-                 sub_words: SubWords = None,
-                 char_vocab: CharsVocab = None):
-        self.task = task
-        self.separator = " " if self.task == "pos" else "\t"
-        self.data_path = os.path.join(self.BASE_PATH, task, data_set)
-        self.pre_processor: PreProcessor = pre_processor
-        self.vocab: Vocab = vocab
-        self.sub_words = sub_words
-        self.char_vocab = char_vocab
-        self.data: List[InputExample] = self.read_examples_from_file()
+#
+# class TokenDataFile(Dataset):
+#     BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+#
+#     def __init__(self, task: str, data_set, pre_processor: PreProcessor, vocab: Vocab,
+#                  sub_words: SubWords = None,
+#                  char_vocab: CharsVocab = None):
+#         self.task = task
+#         self.separator = " " if self.task == "pos" else "\t"
+#         self.data_path = os.path.join(self.BASE_PATH, task, data_set)
+#         self.pre_processor: PreProcessor = pre_processor
+#         self.vocab: Vocab = vocab
+#         self.sub_words = sub_words
+#         self.char_vocab = char_vocab
+#         self.data: List[InputExample] = self.read_examples_from_file()
 
 
 class SeqDataFile(Dataset):
