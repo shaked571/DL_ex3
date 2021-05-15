@@ -36,7 +36,7 @@ class Trainer:
             raise ValueError("optimizer supports SGD, Adam, AdamW")
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
-        self.loss_func = nn.CrossEntropyLoss()
+        self.loss_func = nn.CrossEntropyLoss(ignore_index=F2I[PAD]) #PU HERE THE PADDINF
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         self.model_args = {"part": self.part, "task": self.vocab.task, "lr": lr, "epoch": self.n_epochs,
@@ -169,5 +169,9 @@ if __name__ == '__main__':
                                      "d: a concatenation of (a) and (b) followed by a linear layer.")
     parser.add_argument('trainFile', help="The input file to train on.")
     parser.add_argument('modelFile', help="the file to save the model.")
+    parser.add_argument('-o', '--optimizer', type=str, default='AdamW')
     parser.add_argument('-e', '--epochs', help='Number of epochs', default=5, type=int)
-    parser.add_argument('-lr', '--learning_rate', help='Number of epochs', default=0.001, type=float)
+    parser.add_argument('-l', '--learning_rate', help='Number of epochs', default=0.001, type=float)
+    parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=float)
+    args = parser.parse_args()
+
