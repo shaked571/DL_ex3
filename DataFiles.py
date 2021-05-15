@@ -42,7 +42,7 @@ class SeqDataFile(Dataset):
     def __init__(self, examples_file, vocab: Vocab):
         self.data_path = os.path.join(self.BASE_PATH, examples_file)
         self.vocab = vocab
-        self.examples, self.labels = self.get_examples_and_labels()
+        self.data, self.labels = self.get_examples_and_labels()
 
     def get_examples_and_labels(self):
         examples = []
@@ -56,8 +56,11 @@ class SeqDataFile(Dataset):
 
         return examples, labels
 
+    def __len__(self):
+        return len(self.data)
+
     def __getitem__(self, index):
-        word = self.examples[index]
+        word = self.data[index]
         label = self.labels[index]
         words_tensor = torch.tensor([self.vocab.get_word_index(w) for w in word]).to(torch.int64)
         label_tensor = torch.tensor([self.vocab.label2i[label]]).to(torch.int64)
