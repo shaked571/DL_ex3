@@ -11,7 +11,7 @@ class InputExample:
     """
     A single training/test example for token classification.
     Args:
-        guid: Unique id for the example.
+        guid:  Unique id for the example.
         words: list. The words of the sequence.
         label: (Optional) str. The label of the middle word in the window
     """
