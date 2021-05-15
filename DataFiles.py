@@ -39,15 +39,15 @@ class TokenDataFile(Dataset):
 class SeqDataFile(Dataset):
     BASE_PATH = os.path.dirname(__file__)
 
-    def __init__(self, train_file, vocab: Vocab):
-        self.train_path = os.path.join(self.BASE_PATH, train_file)
+    def __init__(self, examples_file, vocab: Vocab):
+        self.data_path = os.path.join(self.BASE_PATH, examples_file)
         self.vocab = vocab
         self.examples, self.labels = self.get_examples_and_labels()
 
     def get_examples_and_labels(self):
         examples = []
         labels = []
-        with open(self.train_path, mode="r") as f:
+        with open(self.data_path, mode="r") as f:
             lines = f.readlines()
         for line in lines:
             example, label = line.strip().split("\t")
