@@ -12,30 +12,22 @@ class SeqLstm(nn.Module):
     def __init__(self, vocab: Vocab, embedding_dim=50, hidden_dim=100):
         super(SeqLstm, self).__init__()
         self.vocab = vocab
-
         self.hidden_dim = hidden_dim
-
         self.word_embeddings = nn.Embedding(vocab.vocab_size, embedding_dim, padding_idx=0)
-
-        # The LSTM takes word embeddings as inputs, and outputs hidden states
-        # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, self.hidden_dim, batch_first=True)
-
-        # The linear layer that maps from hidden state space to tag space
-        # self.hidden = nn.Linear(self.hidden_dim, self.hidden_dim)
-
-        # mlp layers
+        self.lstm = nn.LSTM(embedding_dim, self.hidden_dim)
         self.linear1 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.tanh = nn.Tanh()
         self.linear2 = nn.Linear(self.hidden_dim, self.vocab.num_of_labels)
-
+        self.sofmax =  nn.LogSoftmax(dim=0)
     def forward(self, x, x_lens):
+
         embeds = self.word_embeddings(x)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (ht, ct) = self.lstm(x_packed)
         out = self.linear1(ht[-1])
         out = self.tanh(out)
         out = self.linear2(out)
+        out = self.sofmax(out)
         return out
 
 

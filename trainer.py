@@ -39,7 +39,7 @@ class Trainer:
             raise ValueError("optimizer supports SGD, Adam, AdamW")
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
-        self.loss_func = nn.BCELoss()
+        self.loss_func = nn.CrossEntropyLoss()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         self.model_args = {"part": self.part, "task": self.vocab.task, "lr": lr, "epoch": self.n_epochs,
