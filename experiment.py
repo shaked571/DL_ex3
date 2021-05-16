@@ -9,7 +9,7 @@ from trainer import Trainer
 
 class SeqLstm(nn.Module):
 
-    def __init__(self, vocab: Vocab, embedding_dim=30, hidden_dim=100):
+    def __init__(self, vocab: Vocab, embedding_dim=50, hidden_dim=100):
         super(SeqLstm, self).__init__()
         self.vocab = vocab
 
