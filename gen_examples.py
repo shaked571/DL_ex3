@@ -1,7 +1,7 @@
 import random
 import argparse
-MAX_SEQ_DIGITS = 200
-MAX_SEQ_LETTERS = 200
+MAX_SEQ_DIGITS = 20
+MAX_SEQ_LETTERS = 20
 positive_letters = ["a", "b", "c", "d"]
 negative_letters = ["a", "c", "b", "d"]
 POSITIVE_TAG = "1"
