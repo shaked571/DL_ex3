@@ -26,7 +26,7 @@ class Trainer:
         self.model = model
         self.dev_batch_size = 128
         self.train_data = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=pad_collate)
-        self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size, )
+        self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.vocab = vocab
         if optimizer == "SGD":
             self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0.001)
@@ -77,7 +77,7 @@ class Trainer:
                 # update running training loss
                 train_loss += loss.item() * data.size(0)
                 step_loss += loss.item() * data.size(0)
-                if step % self.steps_to_eval == 0 and step !=0:
+                if step % self.steps_to_eval == 0 and step != 0:
                     print(f"in step: {step} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
@@ -93,14 +93,11 @@ class Trainer:
 
             prediction = []
             all_target = []
-            for eval_step, (data, target) in tqdm(enumerate(self.dev_data), total=len(self.dev_data),
+            for eval_step, (data, target, data_lens, target_lens) in tqdm(enumerate(self.dev_data), total=len(self.dev_data),
                                                   desc=f"dev step {step} loop"):
-                if self.dev_data.batch_size and self.train_data.batch_size > 1:
-                    data = pad_sequence(data)
-
                 data = data.to(self.device)
                 target = target.to(self.device)
-                output = self.model(data)
+                output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
 
                 loss = self.loss_func(output, target.view(-1))
                 loss += loss.item() * data.size(0)
