@@ -18,16 +18,15 @@ class SeqLstm(nn.Module):
         self.linear1 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.tanh = nn.Tanh()
         self.linear2 = nn.Linear(self.hidden_dim, self.vocab.num_of_labels)
-        self.sofmax =  nn.LogSoftmax(dim=0)
-    def forward(self, x, x_lens):
 
+
+    def forward(self, x, x_lens):
         embeds = self.word_embeddings(x)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (ht, ct) = self.lstm(x_packed)
         out = self.linear1(ht[-1])
         out = self.tanh(out)
         out = self.linear2(out)
-        # out = self.sofmax(out)
         return out
 
 
@@ -42,6 +41,7 @@ def main(train_file, test_file, optimizer, batch_size, l_r, hidden_dim):
     trainer = Trainer(model=model,
                       train_data=train_df,
                       dev_data=dev_df,
+                      lr=l_r,
                       train_batch_size=batch_size,
                       vocab=vocab,
                       n_ep=5)
