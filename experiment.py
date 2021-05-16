@@ -27,7 +27,7 @@ class SeqLstm(nn.Module):
         out = self.linear1(ht[-1])
         out = self.tanh(out)
         out = self.linear2(out)
-        out = self.sofmax(out)
+        # out = self.sofmax(out)
         return out
 
 
