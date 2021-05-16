@@ -132,8 +132,7 @@ class Trainer:
         for eval_step, (data, _, data_lens, _) in tqdm(enumerate(test), total=len(test),
                                                                       desc=f"test data"):
             data = data.to(self.device)
-            data = data.to(self.device)
-            output = self.model(data)
+            output = self.model(data, data_lens)
             _, predicted = torch.max(output, 1)
             prediction += predicted.tolist()
         return [self.vocab.i2label[i] for i in prediction]
