@@ -19,7 +19,7 @@ class SeqLstm(nn.Module):
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, self.hidden_dim)
+        self.lstm = nn.LSTM(embedding_dim, self.hidden_dim, batch_first=True)
 
         # The linear layer that maps from hidden state space to tag space
         # self.hidden = nn.Linear(self.hidden_dim, self.hidden_dim)
