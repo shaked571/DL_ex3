@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
+from torch.nn.utils.rnn import pad_sequence
 
 def pad_collate(batch):
     (xx, yy) = zip(*batch)

@@ -32,6 +32,7 @@ class SeqLstm(nn.Module):
     def forward(self, x, x_lens):
         embeds = self.word_embeddings(x)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
+
         out, (ht, ct) = self.lstm(x_packed)
         out = self.linear1(ht[-1])
         out = self.tanh(out)
