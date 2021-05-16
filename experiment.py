@@ -30,10 +30,10 @@ class SeqLstm(nn.Module):
         return out
 
 
-def main(train_file, test_file, optimizer, batch_size, l_r, hidden_dim):
+def main(train_file, test_file, optimizer, batch_size, l_r,embedding_dim, hidden_dim):
     task = "language"
     vocab = SeqVocab(task=task)
-    model = SeqLstm(vocab)
+    model = SeqLstm(vocab,embedding_dim=embedding_dim , hidden_dim=hidden_dim)
 
     train_df = SeqDataFile(train_file, vocab)
     dev_df = SeqDataFile(test_file, vocab)
@@ -43,6 +43,7 @@ def main(train_file, test_file, optimizer, batch_size, l_r, hidden_dim):
                       dev_data=dev_df,
                       lr=l_r,
                       train_batch_size=batch_size,
+
                       vocab=vocab,
                       n_ep=5)
     trainer.train()
@@ -58,7 +59,14 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--batch_size', type=int, required=False)
     parser.add_argument('-l', '--l_r', type=float, required=False)
     parser.add_argument('-h', '--hidden_dim', type=int, required=False)
+    parser.add_argument('-e', '--embedding_dim', type=int, required=False)
 
     args = parser.parse_args()
 
-    main(args.train_file, args.dev_file, args.optimizer, args.batch_size, args.l_r, args.hidden_dim)
+    main(train_file=args.train_file,
+         test_file=args.dev_file,
+         optimizer=args.optimizer,
+         batch_size=args.batch_size,
+         l_r=args.l_r,
+         hidden_dim=args.hidden_dim,
+         embedding_dim=args.embedding_dim)
