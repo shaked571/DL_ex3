@@ -3,11 +3,14 @@ import abc
 
 class Vocab(abc.ABC):
     UNKNOWN_WORD = "UUUNKKK"
+    PAD_IDX = 0
 
     def __init__(self, task):
         self.task = task
         self.separator = " " if self.task == "pos" else "\t"
         self.words, self.labels = self.get_unique()
+        self.words = list(self.words)
+        self.words.insert(self.PAD_IDX, "PAD_DUMMY")
         self.vocab_size = len(self.words)
         self.num_of_labels = len(self.labels)
         self.i2word = {i: w for i, w in enumerate(self.words)}

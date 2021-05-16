@@ -8,6 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
 
+
 def pad_collate(batch):
     (xx, yy) = zip(*batch)
     x_lens = [len(x) for x in xx]
@@ -18,14 +19,14 @@ def pad_collate(batch):
 
     return xx_pad, yy_pad, x_lens, y_lens
 
-class Trainer:
 
+class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab, n_ep=1,
                  optimizer='AdamW', train_batch_size=32, steps_to_eval=30000, lr=0.01, filter_num=30, window_size=3, part=None):
         self.part = part
         self.model = model
         self.dev_batch_size = 128
-        self.train_data = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=pad_collate)
+        self.train_data = DataLoader(train_data, batch_size=train_batch_size, collate_fn=pad_collate)
         self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.vocab = vocab
         if optimizer == "SGD":
