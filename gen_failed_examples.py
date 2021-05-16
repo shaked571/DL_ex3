@@ -5,8 +5,8 @@ from gen_examples import POSITIVE_TAG, NEGATIVE_TAG, write_examples
 
 def get_ordered_numbers_example(pos):
     ordered_numbers = "123456789"
-    if pos:
-        ordered_numbers = ordered_numbers[::-1]
+    if not pos:
+        ordered_numbers = ''.join(random.sample(ordered_numbers, len(ordered_numbers)))
     return ordered_numbers*10
 
 
