@@ -36,7 +36,9 @@ class Trainer:
         elif optimizer == "Adam":
             self.optimizer = optim.AdamW(model.parameters(), lr=lr)
         else:
-            raise ValueError("optimizer supports SGD, Adam, AdamW")
+            self.optimizer = optim.AdamW(model.parameters(), lr=lr)
+            print("optimizer supports SGD, Adam, AdamW, Using by Default AdamW")
+
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
         self.loss_func = nn.CrossEntropyLoss()
@@ -123,11 +125,13 @@ class Trainer:
         return res
 
     def test(self, test_df):
-        test = DataLoader(test_df, batch_size=self.dev_batch_size, )
+        test = DataLoader(test_df, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.model.load_state_dict(torch.load(self.saved_model_path))
         self.model.eval()
         prediction = []
-        for test_step, (data, _) in tqdm(enumerate(test), total=len(test), desc=f"test data"):
+        for eval_step, (data, _, data_lens, _) in tqdm(enumerate(test), total=len(test),
+                                                                      desc=f"test data"):
+            data = data.to(self.device)
             data = data.to(self.device)
             output = self.model(data)
             _, predicted = torch.max(output, 1)
