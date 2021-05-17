@@ -36,6 +36,18 @@ def get_sum_example(pos):
     return sum_str
 
 
+
+def get_div3_example(is_pos):
+    val=random.randrange(1,10000000)*3
+    primes = [1,2,5,7,11,13,17, 19, 29, 31,37,49,53,97,]
+
+    if is_pos:
+        return str(bin(val))
+    else:
+        return str(bin(val + random.choice(primes)))
+
+
+
 def get_examples(examples_num, example_func):
     examples = []
     for i in range(int(examples_num/2)):
@@ -53,8 +65,10 @@ def main(examples_num, examples_type, file_name):
         example_func = get_palindrome_example
     elif examples_type == "ordered":
         example_func = get_ordered_numbers_example
+    elif examples_type == 'div3':
+        example_func = get_div3_example
     else:
-        print("examples type is not valid! choose: sum/palindrome/ordered")
+        print("examples type is not valid! choose: sum/palindrome/ordered/div3")
         return
     examples = get_examples(examples_num, example_func)
     write_examples(file_name, examples, True)
