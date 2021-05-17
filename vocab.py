@@ -61,3 +61,13 @@ class SeqVocab(Vocab):
         words = set(char)
 
         return words, labels
+
+
+class Binary(Vocab):
+    def __init__(self, task: str):
+        super().__init__(task)
+
+    def get_unique(self):
+        labels = {'0', '1'}
+        words = ['0', '1', 'b']
+        return words, labels
