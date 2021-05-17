@@ -47,6 +47,15 @@ def get_div3_example(is_pos):
         return str(val + random.choice(primes))
 
 
+def get_div3_example_bin(is_pos):
+    val=random.randrange(1,10000000)*3
+    primes = [1,2,5,7,11,13,17, 19, 29, 31,37,49,53,97,]
+
+    if is_pos:
+        return str(bin(val))
+    else:
+        return str(bin(val + random.choice(primes)))
+
 
 def get_examples(examples_num, example_func):
     examples = []

@@ -1,10 +1,13 @@
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence
+import torch
 
 from vocab import Vocab, SeqVocab, Binary, Num
 from DataFiles import SeqDataFile
 import argparse
 from trainer import Trainer
+
+torch.manual_seed(1)
 
 class SeqLstm(nn.Module):
 

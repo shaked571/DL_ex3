@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from vocab import Vocab
 
+torch.manual_seed(1)
 
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab, n_ep=1,
