@@ -42,9 +42,9 @@ def get_div3_example(is_pos):
     primes = [1,2,5,7,11,13,17, 19, 29, 31,37,49,53,97,]
 
     if is_pos:
-        return str(bin(val))
+        return str(val)
     else:
-        return str(bin(val + random.choice(primes)))
+        return str(val + random.choice(primes))
 
 
 

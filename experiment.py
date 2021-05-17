@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence
 
-from vocab import Vocab, SeqVocab, Binary
+from vocab import Vocab, SeqVocab, Binary, Num
 from DataFiles import SeqDataFile
 import argparse
 from trainer import Trainer
@@ -29,10 +29,13 @@ class SeqLstm(nn.Module):
         return out
 
 
-def main(train_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001,embedding_dim=20, hidden_dim=200, n_epochs=1, binaric=False):
+def main(train_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001,embedding_dim=20, hidden_dim=200, n_epochs=1,
+         binaric=False,num=False ):
     task = "language"
     if binaric:
         vocab = Binary("binary")
+    elif num:
+        vocab = Num("binary")
     else:
         vocab = SeqVocab(task=task)
     model = SeqLstm(vocab,embedding_dim=embedding_dim, hidden_dim=hidden_dim)
@@ -67,6 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--embedding_dim', type=int, required=False)
     parser.add_argument('-e', '--epochs', type=int, required=False)
     parser.add_argument('--binaric', action="store_true", required=False)
+    parser.add_argument('--num', action="store_true", required=False)
 
     args = parser.parse_args()
 
@@ -78,4 +82,5 @@ if __name__ == "__main__":
          hidden_dim=args.hidden_dim,
          embedding_dim=args.embedding_dim,
          n_epochs=args.epochs,
-         binaric=args.binaric)
+         binaric=args.binaric,
+         num=args.num)
