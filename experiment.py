@@ -49,7 +49,7 @@ def main(train_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001,embe
                       vocab=vocab,
                       n_ep=n_epochs)
     trainer.train()
-    test_prediction = trainer.evaluate_model(trainer.dev_data,0 ,"test on dev")
+    test_prediction = trainer.evaluate_data_set(trainer.dev_data,0 ,"test on dev")
     train_prediction = trainer.evaluate_data_set(trainer.train_data,0, "test on train")
 
     print(f"test prediction: {test_prediction}")
