@@ -36,7 +36,9 @@ class Trainer:
         elif optimizer == "Adam":
             self.optimizer = optim.AdamW(model.parameters(), lr=lr)
         else:
-            raise ValueError("optimizer supports SGD, Adam, AdamW")
+            self.optimizer = optim.AdamW(model.parameters(), lr=lr)
+            print("optimizer supports SGD, Adam, AdamW, Using by Default AdamW")
+
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
         self.loss_func = nn.CrossEntropyLoss()
@@ -115,6 +117,31 @@ class Trainer:
 
         self.model.train()
 
+
+    def evaluate_data_set(self, data, stage):
+        with torch.no_grad():
+            self.model.eval()
+            loss = 0
+
+            prediction = []
+            all_target = []
+            for eval_step, (data, target, data_lens, target_lens) in tqdm(enumerate(data), total=len(data),
+                                                                          desc=f"test data set"):
+                data = data.to(self.device)
+                target = target.to(self.device)
+                output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
+
+                loss = self.loss_func(output, target.view(-1))
+                loss += loss.item() * data.size(0)
+                _, predicted = torch.max(output, 1)
+                prediction += predicted.tolist()
+                all_target += target.view(-1).tolist()
+            accuracy = self.accuracy_token_tag(prediction, all_target)
+            print(f'Accuracy/dev_{stage}: {accuracy}')
+            self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, 0)
+            self.writer.add_scalar(f'Loss/dev_{stage}', loss, 0)
+
+
     def suffix_run(self):
         res = ""
         for k, v in self.model_args.items():
@@ -123,13 +150,14 @@ class Trainer:
         return res
 
     def test(self, test_df):
-        test = DataLoader(test_df, batch_size=self.dev_batch_size, )
+        test = DataLoader(test_df, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.model.load_state_dict(torch.load(self.saved_model_path))
         self.model.eval()
         prediction = []
-        for test_step, (data, _) in tqdm(enumerate(test), total=len(test), desc=f"test data"):
+        for eval_step, (data, _, data_lens, _) in tqdm(enumerate(test), total=len(test),
+                                                                      desc=f"test data"):
             data = data.to(self.device)
-            output = self.model(data)
+            output = self.model(data, data_lens)
             _, predicted = torch.max(output, 1)
             prediction += predicted.tolist()
         return [self.vocab.i2label[i] for i in prediction]
