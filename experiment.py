@@ -58,12 +58,12 @@ def main(train_file, dev_file, test_file, optimizer='AdamW', batch_size=10, l_r=
                       vocab=vocab,
                       n_ep=n_epochs)
     trainer.train()
-    trainer.evaluate_data_set(trainer.dev_data,"test on dev")
     trainer.evaluate_data_set(trainer.train_data, "test on train")
+    trainer.evaluate_data_set(trainer.dev_data,"test on dev")
     trainer.evaluate_data_set(test_data, "test on test")
 
-    test_prediction = trainer.test(dev_df)
-    trainer.dump_test_file(test_prediction, dev_df.data_path)
+    test_prediction = trainer.test(test_df)
+    trainer.dump_test_file(test_prediction, test_df.data_path)
 
 
 if __name__ == "__main__":
@@ -83,7 +83,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(train_file=args.train_file,
-         test_file=args.dev_file,
+         dev_file=args.dev_file,
+         test_file=args.test_file,
          optimizer=args.optimizer,
          batch_size=args.batch_size,
          l_r=args.l_r,
