@@ -117,6 +117,31 @@ class Trainer:
 
         self.model.train()
 
+
+    def evaluate_data_set(self, data, stage):
+        with torch.no_grad():
+            self.model.eval()
+            loss = 0
+
+            prediction = []
+            all_target = []
+            for eval_step, (data, target, data_lens, target_lens) in tqdm(enumerate(data), total=len(data),
+                                                                          desc=f"test data set"):
+                data = data.to(self.device)
+                target = target.to(self.device)
+                output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
+
+                loss = self.loss_func(output, target.view(-1))
+                loss += loss.item() * data.size(0)
+                _, predicted = torch.max(output, 1)
+                prediction += predicted.tolist()
+                all_target += target.view(-1).tolist()
+            accuracy = self.accuracy_token_tag(prediction, all_target)
+            print(f'Accuracy/dev_{stage}: {accuracy}')
+            self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, step)
+            self.writer.add_scalar(f'Loss/dev_{stage}', loss, step)
+
+
     def suffix_run(self):
         res = ""
         for k, v in self.model_args.items():
