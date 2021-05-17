@@ -138,8 +138,8 @@ class Trainer:
                 all_target += target.view(-1).tolist()
             accuracy = self.accuracy_token_tag(prediction, all_target)
             print(f'Accuracy/dev_{stage}: {accuracy}')
-            self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, step)
-            self.writer.add_scalar(f'Loss/dev_{stage}', loss, step)
+            self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, 0)
+            self.writer.add_scalar(f'Loss/dev_{stage}', loss, 0)
 
 
     def suffix_run(self):
