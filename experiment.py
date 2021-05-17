@@ -52,7 +52,7 @@ def main(train_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001,embe
     trainer.evaluate_data_set(trainer.dev_data,"test on dev")
     trainer.evaluate_data_set(trainer.train_data, "test on train")
 
-    test_prediction = trainer.test(trainer.dev_data)
+    test_prediction = trainer.test(dev_df)
     trainer.dump_test_file(test_prediction, dev_df.data_path)
 
 
