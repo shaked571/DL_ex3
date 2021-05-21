@@ -23,7 +23,7 @@ def pad_collate(batch):
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab, n_ep=1,
                  optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.01, filter_num=30, window_size=3, part=None,
-                 from_pre_trained=False, model_path=None, output_model=None):
+                 output_path=None):
         # TODO Load for testing need to make surwe part 1 and 2 would still work.
         self.part = part
         self.model = model
@@ -51,7 +51,7 @@ class Trainer:
                            "steps_to_eval": self.steps_to_eval, "optim": optimizer, "hidden_dim": self.model.hidden_dim}
         self.writer = SummaryWriter(log_dir=f"tensor_board/{self.suffix_run()}")
 
-        self.saved_model_path = f"{self.suffix_run()}.bin" if output_model is None else f"{output_model}.bin"
+        self.saved_model_path = f"{self.suffix_run()}.bin" if output_path is None else f"{output_path}.bin"
 
         self.best_model = None
         self.best_score = 0

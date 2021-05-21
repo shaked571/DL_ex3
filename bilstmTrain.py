@@ -12,28 +12,23 @@ from torch.utils.data import DataLoader, Dataset
 from models import BiLSTMVanila
 from trainer import Trainer
 from vocab import Vocab
-
+from DataFiles import TokenDataFile
 torch.manual_seed(1)
-
-repr
-train_file
-output_path
-optimizer
-epochs
-learning_rate
-batch_size
 
 def main(repr, train_file,dev_file, task, output_path ,optimizer='AdamW', epochs=1, l_r=0.001,batch_size=10, embedding_dim=20, hidden_dim=200,
          dropout=0.2):
     vocab = Vocab(task)
     if repr == 'a':
-        BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropot=dropout)
-    model = SeqLstm(vocab, embedding_dim=embedding_dim, hidden_dim=hidden_dim)
+        model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropot=dropout)
+    else:
+        raise ValueError(f"Not supporting repr: {repr} see help for details.")
 
-    train_df = SeqDataFile(train_file, vocab)
-    dev_df = SeqDataFile(dev_file, vocab)
-    test_df = SeqDataFile(test_file, vocab)
-    test_data = DataLoader(test_df, batch_size=batch_size, collate_fn=pad_collate)
+    if dev_file is None:
+        train_df = TokenDataFile(train_file, vocab, partial='train')
+        dev_df = TokenDataFile(train_file, vocab,  partial='dev')
+    else:
+        train_df = TokenDataFile(train_file, vocab)
+        dev_df = TokenDataFile(dev_file, vocab)
 
     trainer = Trainer(model=model,
                       train_data=train_df,
@@ -42,15 +37,9 @@ def main(repr, train_file,dev_file, task, output_path ,optimizer='AdamW', epochs
                       train_batch_size=batch_size,
                       optimizer=optimizer,
                       vocab=vocab,
-                      n_ep=n_epochs)
+                      output_path=output_path,
+                      n_ep=epochs)
     trainer.train()
-    trainer.evaluate_data_set(trainer.train_data, "test on train")
-    trainer.evaluate_data_set(trainer.dev_data,"test on dev")
-    trainer.evaluate_data_set(test_data, "test on test")
-
-    test_prediction = trainer.test(test_df)
-    trainer.dump_test_file(test_prediction, test_df.data_path)
-
 
 
 if __name__ == '__main__':

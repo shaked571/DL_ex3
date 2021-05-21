@@ -27,7 +27,7 @@ class PreProcessor(object):
 class TokenDataFile(Dataset):
     BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
-    def __init__(self, task: str, data: str, vocab: Vocab):
+    def __init__(self, task: str, data: str, vocab: Vocab, partial=None):
                  # sub_words: SubWords = None,
                  # char_vocab: CharsVocab = None):
         self.data_path = os.path.join(self.BASE_PATH, data)
@@ -36,6 +36,11 @@ class TokenDataFile(Dataset):
         # self.sub_words = sub_words
         # self.char_vocab = char_vocab
         self.data, self.labels = self.get_examples_and_labels()
+        if partial == 'train':
+            self.data, self.labels = self.data[:int(len(self.data) * 0.9)], self.labels[:int(len(self.data) * 0.9)]
+        elif partial == 'dev':
+            self.data, self.labels = self.data[int(len(self.data) * 0.9):], self.labels[int(len(self.data) * 0.9):]
+
 
     def get_examples_and_labels(self):
         examples = []
