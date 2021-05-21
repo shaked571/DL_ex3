@@ -11,24 +11,24 @@ from torch.utils.data import DataLoader, Dataset
 
 from models import BiLSTMVanila
 from trainer import Trainer
-from vocab import Vocab
+from vocab import Vocab, TokenVocab
 from DataFiles import TokenDataFile
 torch.manual_seed(1)
 
 def main(repr, train_file,dev_file, task, output_path ,optimizer='AdamW', epochs=1, l_r=0.001,batch_size=10, embedding_dim=20, hidden_dim=200,
          dropout=0.2):
-    vocab = Vocab(task)
+    vocab = TokenVocab(train_file, task)
     if repr == 'a':
-        model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropot=dropout)
+        model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropout=dropout)
     else:
         raise ValueError(f"Not supporting repr: {repr} see help for details.")
 
     if dev_file is None:
-        train_df = TokenDataFile(train_file, vocab, partial='train')
-        dev_df = TokenDataFile(train_file, vocab,  partial='dev')
+        train_df = TokenDataFile(task,train_file ,vocab, partial='train')
+        dev_df = TokenDataFile(task,train_file, vocab,  partial='dev')
     else:
-        train_df = TokenDataFile(train_file, vocab)
-        dev_df = TokenDataFile(dev_file, vocab)
+        train_df = TokenDataFile(task,train_file, vocab)
+        dev_df = TokenDataFile(task,dev_file, vocab)
 
     trainer = Trainer(model=model,
                       train_data=train_df,
@@ -67,7 +67,7 @@ if __name__ == '__main__':
             output_path=args.modelFile,
             optimizer=args.optimizer,
             epochs=args.epochs,
-            learning_rate=args.learning_rate,
+            l_r=args.learning_rate,
             batch_size=args.batch_size,
             dropout=args.drop_out
     )

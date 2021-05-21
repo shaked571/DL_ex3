@@ -27,10 +27,10 @@ class PreProcessor(object):
 class TokenDataFile(Dataset):
     BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
-    def __init__(self, task: str, data: str, vocab: Vocab, partial=None):
+    def __init__(self, task: str, data_fname: str, vocab: Vocab, partial=None):
                  # sub_words: SubWords = None,
                  # char_vocab: CharsVocab = None):
-        self.data_path = os.path.join(self.BASE_PATH, data)
+        self.data_path = data_fname
         self.separator = " " if task == "pos" else "\t"
         self.vocab = vocab
         # self.sub_words = sub_words
