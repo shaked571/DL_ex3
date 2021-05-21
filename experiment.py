@@ -1,36 +1,14 @@
-import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
 import torch
 from torch.utils.data import DataLoader
-from vocab import Vocab, SeqVocab, Binary, Num
+
+from models import SeqLstm
+from vocab import SeqVocab, Binary, Num
 from DataFiles import SeqDataFile
 import argparse
 from trainer import Trainer
 from trainer import pad_collate
 
 torch.manual_seed(1)
-
-
-class SeqLstm(nn.Module):
-
-    def __init__(self, vocab: Vocab, embedding_dim=50, hidden_dim=100):
-        super(SeqLstm, self).__init__()
-        self.vocab = vocab
-        self.hidden_dim = hidden_dim
-        self.word_embeddings = nn.Embedding(vocab.vocab_size, embedding_dim, padding_idx=0)
-        self.lstm = nn.LSTM(embedding_dim, self.hidden_dim)
-        self.linear1 = nn.Linear(self.hidden_dim, self.hidden_dim)
-        self.tanh = nn.Tanh()
-        self.linear2 = nn.Linear(self.hidden_dim, self.vocab.num_of_labels)
-
-    def forward(self, x, x_lens):
-        embeds = self.word_embeddings(x)
-        x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
-        out, (ht, ct) = self.lstm(x_packed)
-        out = self.linear1(ht[-1])
-        out = self.tanh(out)
-        out = self.linear2(out)
-        return out
 
 
 def main(train_file, dev_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001,embedding_dim=20, hidden_dim=200, n_epochs=1,
