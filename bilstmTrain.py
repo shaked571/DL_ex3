@@ -11,12 +11,13 @@ from torch.utils.data import DataLoader, Dataset
 
 from models import BiLSTMVanila
 from trainer import Trainer
-from vocab import Vocab, TokenVocab
+from vocab import TokenVocab
 from DataFiles import TokenDataFile
 torch.manual_seed(1)
 
-def main(repr, train_file,dev_file, task, output_path ,optimizer='AdamW', epochs=1, l_r=0.001,batch_size=10, embedding_dim=20, hidden_dim=200,
-         dropout=0.2):
+
+def main(repr, train_file, dev_file, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
+         embedding_dim=20, hidden_dim=200, dropout=0.2):
     vocab = TokenVocab(train_file, task)
     if repr == 'a':
         model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropout=dropout)
@@ -24,11 +25,11 @@ def main(repr, train_file,dev_file, task, output_path ,optimizer='AdamW', epochs
         raise ValueError(f"Not supporting repr: {repr} see help for details.")
 
     if dev_file is None:
-        train_df = TokenDataFile(task,train_file ,vocab, partial='train')
-        dev_df = TokenDataFile(task,train_file, vocab,  partial='dev')
+        train_df = TokenDataFile(task, train_file,vocab, partial='train')
+        dev_df = TokenDataFile(task, train_file, vocab,  partial='dev')
     else:
-        train_df = TokenDataFile(task,train_file, vocab)
-        dev_df = TokenDataFile(task,dev_file, vocab)
+        train_df = TokenDataFile(task, train_file, vocab)
+        dev_df = TokenDataFile(task, dev_file, vocab)
 
     trainer = Trainer(model=model,
                       train_data=train_df,
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--optimizer', type=str, default='AdamW')
     parser.add_argument('-e', '--epochs', help='Number of epochs', default=5, type=int)
     parser.add_argument('-l', '--learning_rate', help='Number of epochs', default=0.001, type=float)
-    parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=float)
+    parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=int)
     parser.add_argument('-do', '--drop_out', help='fropout value', default=0.2, type=float)
     args = parser.parse_args()
     main(

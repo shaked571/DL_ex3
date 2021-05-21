@@ -35,24 +35,46 @@ class TokenDataFile(Dataset):
         self.vocab = vocab
         # self.sub_words = sub_words
         # self.char_vocab = char_vocab
-        self.data, self.labels = self.get_examples_and_labels()
+        self.data = self.get_examples_and_labels()
         if partial == 'train':
-            self.data, self.labels = self.data[:int(len(self.data) * 0.9)], self.labels[:int(len(self.data) * 0.9)]
+            self.data = self.data[:int(len(self.data) * 0.9)]
         elif partial == 'dev':
-            self.data, self.labels = self.data[int(len(self.data) * 0.9):], self.labels[int(len(self.data) * 0.9):]
+            self.data = self.data[int(len(self.data) * 0.9):]
 
+    def read_sents(self, lines):
+        sentences = []
+        sent = []
+        for line in lines:
+            if line == "" or line == "\n":
+                if sent:
+                    sentences.append(sent)
+                    sent = []
+            else:
+                sent.append(tuple(line.strip().split(self.separator)))
+        return sentences
 
     def get_examples_and_labels(self):
         examples = []
-        labels = []
         with open(self.data_path, mode="r") as f:
             lines = f.readlines()
-        for line in lines:
-            example, label = line.strip().split(self.separator)
-            examples.append(example)
-            labels.append(label)
 
-        return examples, labels
+        curr_words = []
+        curr_labels = []
+        guid_index = 0
+        for line in lines:
+            if line == "" or line == "\n":
+                if curr_words:
+                    guid_index += 1
+                    example = InputExample(guid=f"{self.data_path}-{guid_index}", words=curr_words, labels=curr_labels)
+                    examples.append(example)
+                    curr_words = []
+                    curr_labels = []
+            else:
+                word, label = tuple(line.strip().split(self.separator))
+                curr_words.append(word)
+                curr_labels.append(label)
+
+        return examples
 
     def __len__(self):
         return len(self.data)
@@ -69,10 +91,10 @@ class TokenDataFile(Dataset):
     #     return prefixes_tensor, suffixes_tensor
 
     def __getitem__(self, index):
-        word = self.data[index]
-        label = self.labels[index]
-        words_tensor = torch.tensor([self.vocab.get_word_index(word)]).to(torch.int64)
-        label_tensor = torch.tensor([self.vocab.label2i[label]]).to(torch.int64)
+        words = self.data[index].words
+        labels = self.data[index].labels
+        words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
+        label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
         # if self.sub_words:
         #     prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)

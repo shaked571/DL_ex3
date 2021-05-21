@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from torch.nn.utils.rnn import pack_padded_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from vocab import Vocab
 
@@ -27,12 +27,11 @@ class BiLSTMVanila(nn.Module):
         embeds = self.embedding(x)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
-        # self.hidden2label(lstm_out[-1])
+        out, _ = pad_packed_sequence(out)
         out = self.relu(out)
         out = self.linear(out)
 
         return out
-
 
     def load_model(self, path):
         checkpoint = torch.load(path, map_location="cuda" if torch.cuda.is_available() else "cpu")

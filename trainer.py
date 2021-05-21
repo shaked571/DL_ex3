@@ -67,7 +67,6 @@ class Trainer:
             self.model.train()  # prep model for training
             for step, (data, target, data_lens, target_lens) in tqdm(enumerate(self.train_data), total=len(self.train_data)):
                 data = data.to(self.device)
-
                 target = target.to(self.device)
                 # clear the gradients of all optimized variables
                 self.optimizer.zero_grad()
