@@ -23,21 +23,69 @@ class InputExample:
 class PreProcessor(object):
     pass
 
-#
-# class TokenDataFile(Dataset):
-#     BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
-#
-#     def __init__(self, task: str, data_set, pre_processor: PreProcessor, vocab: Vocab,
-#                  sub_words: SubWords = None,
-#                  char_vocab: CharsVocab = None):
-#         self.task = task
-#         self.separator = " " if self.task == "pos" else "\t"
-#         self.data_path = os.path.join(self.BASE_PATH, task, data_set)
-#         self.pre_processor: PreProcessor = pre_processor
-#         self.vocab: Vocab = vocab
-#         self.sub_words = sub_words
-#         self.char_vocab = char_vocab
-#         self.data: List[InputExample] = self.read_examples_from_file()
+
+class TokenDataFile(Dataset):
+    BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+
+    def __init__(self, task: str, data: str, vocab: Vocab):
+                 # sub_words: SubWords = None,
+                 # char_vocab: CharsVocab = None):
+        self.data_path = os.path.join(self.BASE_PATH, data)
+        self.separator = " " if task == "pos" else "\t"
+        self.vocab = vocab
+        # self.sub_words = sub_words
+        # self.char_vocab = char_vocab
+        self.data, self.labels = self.get_examples_and_labels()
+
+    def get_examples_and_labels(self):
+        examples = []
+        labels = []
+        with open(self.data_path, mode="r") as f:
+            lines = f.readlines()
+        for line in lines:
+            example, label = line.strip().split(self.separator)
+            examples.append(example)
+            labels.append(label)
+
+        return examples, labels
+
+    def __len__(self):
+        return len(self.data)
+
+    # def get_sub_words_tensor(self, words):
+    #     words_prefixes = []
+    #     words_suffixes = []
+    #     for w in words:
+    #         prefix, suffix = self.sub_words.get_sub_words_indexes_by_word(w)
+    #         words_prefixes.append(prefix)
+    #         words_suffixes.append(suffix)
+    #     prefixes_tensor = torch.tensor(words_prefixes).to(torch.int64)
+    #     suffixes_tensor = torch.tensor(words_suffixes).to(torch.int64)
+    #     return prefixes_tensor, suffixes_tensor
+
+    def __getitem__(self, index):
+        words = self.data[index].words
+        label = self.data[index].label
+        words_tensor = torch.tensor([self.vocab.get_word_index(w) for w in words]).to(torch.int64)
+        label_tensor = torch.tensor([self.vocab.label2i[label]]).to(torch.int64)
+
+        # if self.sub_words:
+        #     prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)
+        #     words_tensor = torch.stack((words_tensor, prefixes_tensor, suffixes_tensor), dim=0)
+        #
+        # elif self.char_vocab:
+        #     chars_tensor = self.get_chars_tensor(words)
+        #     words_tensor = torch.cat([chars_tensor, words_tensor.repeat(1)[:, None]], axis=1)
+
+        return words_tensor, label_tensor
+
+    # def get_chars_tensor(self, words):
+    #     chars_tensor = []  # 20 (num of chars in each word)* 5 (num of words) = 100
+    #     for word in words:
+    #         chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
+    #         chars_tensor.append(chars_indices)
+    #     chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
+    #     return chars_tensor
 
 
 class SeqDataFile(Dataset):
