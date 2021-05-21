@@ -64,9 +64,9 @@ class TokenDataFile(Dataset):
     #     return prefixes_tensor, suffixes_tensor
 
     def __getitem__(self, index):
-        words = self.data[index].words
-        label = self.data[index].label
-        words_tensor = torch.tensor([self.vocab.get_word_index(w) for w in words]).to(torch.int64)
+        word = self.data[index]
+        label = self.labels[index]
+        words_tensor = torch.tensor([self.vocab.get_word_index(word)]).to(torch.int64)
         label_tensor = torch.tensor([self.vocab.label2i[label]]).to(torch.int64)
 
         # if self.sub_words:
