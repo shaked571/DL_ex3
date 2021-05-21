@@ -71,7 +71,8 @@ if __name__ == '__main__':
             epochs=args.epochs,
             l_r=args.learning_rate,
             batch_size=args.batch_size,
-            dropout=args.drop_out
+            dropout=args.drop_out,
+            sent_len=args.sent_len
     )
 
 
