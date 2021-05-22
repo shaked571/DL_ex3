@@ -15,7 +15,7 @@ def pad_collate(batch):
     y_lens = [len(y) for y in yy]
 
     xx_pad = pad_sequence(xx, batch_first=True, padding_value=0)
-    yy_pad = pad_sequence(yy, batch_first=True, padding_value=0)
+    yy_pad = pad_sequence(yy, batch_first=True, padding_value=-100)
 
     return xx_pad, yy_pad, x_lens, y_lens
 
@@ -164,8 +164,10 @@ class Trainer:
         return [self.vocab.i2label[i] for i in prediction]
 
     def accuracy_token_tag(self, predict: List, target: List):
-        predict = [self.vocab.i2label[i] for i in predict]
-        target = [self.vocab.i2label[i] for i in target]
+        # predict = [self.vocab.i2label[i] for i in predict]
+        # target = [self.vocab.i2label[i] for i in target if i != -100] #remove padding
+        predict, target = self.get_unpadded_samples(predict, target)
+
         all_pred = 0
         correct = 0
         for p, t in zip(predict, target):
@@ -175,6 +177,17 @@ class Trainer:
             if t == p:
                 correct += 1
         return (correct / all_pred) * 100
+
+    def get_unpadded_samples(self, predict, target):
+        no_pad_predict = []
+        no_pad_target = []
+
+        for p, t in zip(predict, target):
+            if t == -100:
+                continue
+            no_pad_predict.append(self.vocab.i2label[p])
+            no_pad_target.append(self.vocab.i2label[t])
+        return no_pad_predict, no_pad_target
 
     def dump_test_file(self, test_prediction, test_file_path):
         res = []
