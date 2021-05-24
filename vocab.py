@@ -66,6 +66,7 @@ class CharsVocab(Vocab):
                 continue
             word, label = line.strip().split(self.separator)
             chars.update([c for c in word])
+            labels.add(label)
 
         labels.add('O')
         return chars, labels
