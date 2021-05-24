@@ -127,9 +127,13 @@ class TokenDataFile(Dataset):
 
     def get_chars_tensor(self, words):
         chars_tensor = []
+        max_len = max([len(w) for w in words])
         for word in words:
             chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
             chars_tensor.append(chars_indices)
+        for c_w in chars_tensor:
+            if len(c_w) < max_len:
+                c_w += [0] * (max_len - len(c_w))
         chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
         return chars_tensor
 
