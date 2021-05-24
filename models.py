@@ -2,18 +2,20 @@ import torch
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from vocab import Vocab
+from vocab import Vocab, CharsVocab
+import abc
 
 
-class BiLSTMVanila(nn.Module):
+
+class BiLSTM(nn.Module, abc.ABC):
     def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
-        super(BiLSTMVanila, self).__init__()
+        super(BiLSTM, self).__init__()
         self.vocab = vocab
         self.hidden_dim = hidden_dim
         self.vocab_size = self.vocab.vocab_size
         self.sent_len = sent_len
         self.embed_dim = embedding_dim
-        self.embedding = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        self.embedding = self.get_embedding()
         self.dropout = nn.Dropout(p=dropout)
 
         self.blstm = nn.LSTM(input_size=self.embedding.embedding_dim,
@@ -38,6 +40,34 @@ class BiLSTMVanila(nn.Module):
     def load_model(self, path):
         checkpoint = torch.load(path, map_location="cuda" if torch.cuda.is_available() else "cpu")
         self.load_state_dict(checkpoint)
+
+    @abc.abstractmethod
+    def get_embedding(self):
+        pass
+
+
+class BiLSTMVanila(BiLSTM):
+    def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
+        super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
+
+
+    def get_embedding(self):
+        return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+
+class BiLSTMChar(BiLSTM):
+    def __init__(self, embedding_dim: int, hidden_dim: int, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
+        super().__init__(embedding_dim, hidden_dim, chars_vocab, dropout, sent_len)
+
+
+
+
+    def get_embedding(self):
+
+        return
+
+
+
+
 
 
 class SeqLstm(nn.Module):

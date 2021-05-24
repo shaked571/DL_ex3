@@ -9,27 +9,40 @@ from torch import optim
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
-from models import BiLSTMVanila
+from models import BiLSTMVanila, BiLSTMChar
 from trainer import Trainer
-from vocab import TokenVocab
+from vocab import TokenVocab, CharsVocab
 from DataFiles import TokenDataFile
 torch.manual_seed(1)
 
 
-def main(repr, train_file, dev_file, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
+def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
          embedding_dim=20, hidden_dim=200, dropout=0.2, sent_len=128):
-    vocab = TokenVocab(train_file, task)
-    if repr == 'a':
-        model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropout=dropout, sent_len=sent_len)
-    else:
-        raise ValueError(f"Not supporting repr: {repr} see help for details.")
 
-    if dev_file is None:
-        train_df = TokenDataFile(task, train_file,vocab, partial='train')
-        dev_df = TokenDataFile(task, train_file, vocab,  partial='dev')
+    vocab = None
+    chars_vocab = None
+    sub_words = None
+
+    if mission == 'a':
+        vocab = TokenVocab(train_file_name, task)
+        model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropout=dropout,
+                             sent_len=sent_len)
+    elif mission == 'b':
+        chars_vocab = CharsVocab(train_file_name, task)
+        model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim, chars_vocab=chars_vocab, dropout=dropout, sent_len=sent_len)
     else:
-        train_df = TokenDataFile(task, train_file, vocab)
-        dev_df = TokenDataFile(task, dev_file, vocab)
+        raise ValueError(f"Not supporting repr: {mission} see help for details.")
+
+    if dev_file_name is None:
+        train_df = TokenDataFile(task=task, data_fname=train_file_name, mission=mission, vocab=vocab, partial='train',
+                                 sub_words=sub_words, chars_vocab=chars_vocab)
+        dev_df = TokenDataFile(task=task, data_fname=train_file_name, mission= mission, vocab=vocab, partial='dev',
+                               sub_words=sub_words, chars_vocab=chars_vocab)
+    else:
+        train_df = TokenDataFile(task=task, data_fname=train_file_name, mission=mission, vocab=vocab,
+                                 sub_words=sub_words, chars_vocab=chars_vocab)
+        dev_df = TokenDataFile(task=task, data_fname=dev_file_name, mission=mission, vocab=vocab,
+                               sub_words=sub_words, chars_vocab=chars_vocab)
 
     trainer = Trainer(model=model,
                       train_data=train_df,
@@ -61,18 +74,16 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=int)
     parser.add_argument('-do', '--drop_out', help='fropout value', default=0.2, type=float)
     args = parser.parse_args()
-    main(
-            repr=args.repr,
-            train_file=args.trainFile,
-            dev_file=args.dev_file,
-            task=args.task,
-            output_path=args.modelFile,
-            optimizer=args.optimizer,
-            epochs=args.epochs,
-            l_r=args.learning_rate,
-            batch_size=args.batch_size,
-            dropout=args.drop_out,
-            sent_len=args.sent_len
-    )
+    main(mission=args.repr,
+         train_file_name=args.trainFile,
+         dev_file_name=args.dev_file,
+         task=args.task,
+         output_path=args.modelFile,
+         optimizer=args.optimizer,
+         epochs=args.epochs,
+         l_r=args.learning_rate,
+         batch_size=args.batch_size,
+         dropout=args.drop_out,
+         sent_len=args.sent_len)
 
 

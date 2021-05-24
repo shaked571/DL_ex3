@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from torch.utils.data import DataLoader, Dataset
 import torch
-from vocab import Vocab
+from vocab import Vocab, CharsVocab, SubWords
 
 
 @dataclass
@@ -27,14 +27,21 @@ class PreProcessor(object):
 class TokenDataFile(Dataset):
     BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
-    def __init__(self, task: str, data_fname: str, vocab: Vocab, partial=None):
-                 # sub_words: SubWords = None,
-                 # char_vocab: CharsVocab = None):
+    def __init__(self,
+                 task: str,
+                 data_fname: str,
+                 mission: str,
+                 vocab: Vocab = None,
+                 partial=None,
+                 sub_words: SubWords = None,
+                 chars_vocab: CharsVocab = None
+                 ):
         self.data_path = data_fname
         self.separator = " " if task == "pos" else "\t"
+        self.mission = mission
         self.vocab = vocab
-        # self.sub_words = sub_words
-        # self.char_vocab = char_vocab
+        self.sub_words = sub_words
+        self.char_vocab = chars_vocab
         self.data = self.get_examples_and_labels()
         if partial == 'train':
             self.data = self.data[:int(len(self.data) * 0.9)]
@@ -79,40 +86,48 @@ class TokenDataFile(Dataset):
     def __len__(self):
         return len(self.data)
 
-    # def get_sub_words_tensor(self, words):
-    #     words_prefixes = []
-    #     words_suffixes = []
-    #     for w in words:
-    #         prefix, suffix = self.sub_words.get_sub_words_indexes_by_word(w)
-    #         words_prefixes.append(prefix)
-    #         words_suffixes.append(suffix)
-    #     prefixes_tensor = torch.tensor(words_prefixes).to(torch.int64)
-    #     suffixes_tensor = torch.tensor(words_suffixes).to(torch.int64)
-    #     return prefixes_tensor, suffixes_tensor
+    def get_sub_words_tensor(self, words):
+        words_prefixes = []
+        words_suffixes = []
+        for w in words:
+            prefix, suffix = self.sub_words.get_sub_words_indexes_by_word(w)
+            words_prefixes.append(prefix)
+            words_suffixes.append(suffix)
+        prefixes_tensor = torch.tensor(words_prefixes).to(torch.int64)
+        suffixes_tensor = torch.tensor(words_suffixes).to(torch.int64)
+        return prefixes_tensor, suffixes_tensor
 
     def __getitem__(self, index):
         words = self.data[index].words
         labels = self.data[index].labels
-        words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
         label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
-        # if self.sub_words:
-        #     prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)
-        #     words_tensor = torch.stack((words_tensor, prefixes_tensor, suffixes_tensor), dim=0)
-        #
-        # elif self.char_vocab:
-        #     chars_tensor = self.get_chars_tensor(words)
-        #     words_tensor = torch.cat([chars_tensor, words_tensor.repeat(1)[:, None]], axis=1)
+        if self.mission == 'a':
+            words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
+
+        elif self.mission == 'b':
+            words_tensor = self.get_chars_tensor(words)
+
+        elif self.mission == 'c':
+            words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
+            prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)
+            words_tensor = torch.stack((words_tensor, prefixes_tensor, suffixes_tensor), dim=0)
+
+        elif self.mission == 'd':
+            words_tensor = [torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64),
+                            self.get_chars_tensor(words)]
+        else:
+            raise ValueError(f"Data loader dont support mission: {self.mission}, you may use [a,b,c,d] ")
 
         return words_tensor, label_tensor
 
-    # def get_chars_tensor(self, words):
-    #     chars_tensor = []  # 20 (num of chars in each word)* 5 (num of words) = 100
-    #     for word in words:
-    #         chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
-    #         chars_tensor.append(chars_indices)
-    #     chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
-    #     return chars_tensor
+    def get_chars_tensor(self, words):
+        chars_tensor = []  # 20 (num of chars in each word)* 5 (num of words) = 100
+        for word in words:
+            chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
+            chars_tensor.append(chars_indices)
+        chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
+        return chars_tensor
 
 
 class SeqDataFile(Dataset):
