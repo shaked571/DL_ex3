@@ -67,6 +67,7 @@ class CharsVocab(Vocab):
             word, label = line.strip().split(self.separator)
             chars.update([c for c in word])
 
+        labels.add('O')
         return chars, labels
 
     def get_chars_indexes_by_word(self, word):

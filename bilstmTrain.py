@@ -50,7 +50,7 @@ def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='
                       lr=l_r,
                       train_batch_size=batch_size,
                       optimizer=optimizer,
-                      vocab=vocab,
+                      vocab=vocab if mission != "b" else chars_vocab,
                       output_path=output_path,
                       n_ep=epochs)
     trainer.train()

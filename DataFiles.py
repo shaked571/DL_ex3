@@ -100,29 +100,33 @@ class TokenDataFile(Dataset):
     def __getitem__(self, index):
         words = self.data[index].words
         labels = self.data[index].labels
-        label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
         if self.mission == 'a':
             words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
+            label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
         elif self.mission == 'b':
             words_tensor = self.get_chars_tensor(words)
+            label_tensor = torch.tensor([self.char_vocab.label2i[label] for label in labels]).to(torch.int64)
 
         elif self.mission == 'c':
             words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
             prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)
             words_tensor = torch.stack((words_tensor, prefixes_tensor, suffixes_tensor), dim=0)
+            label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
         elif self.mission == 'd':
             words_tensor = [torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64),
                             self.get_chars_tensor(words)]
+            label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
+            
         else:
             raise ValueError(f"Data loader dont support mission: {self.mission}, you may use [a,b,c,d] ")
 
         return words_tensor, label_tensor
 
     def get_chars_tensor(self, words):
-        chars_tensor = []  # 20 (num of chars in each word)* 5 (num of words) = 100
+        chars_tensor = []
         for word in words:
             chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
             chars_tensor.append(chars_indices)

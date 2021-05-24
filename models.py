@@ -6,7 +6,6 @@ from vocab import Vocab, CharsVocab
 import abc
 
 
-
 class BiLSTM(nn.Module, abc.ABC):
     def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
         super(BiLSTM, self).__init__()
@@ -15,10 +14,11 @@ class BiLSTM(nn.Module, abc.ABC):
         self.vocab_size = self.vocab.vocab_size
         self.sent_len = sent_len
         self.embed_dim = embedding_dim
-        self.embedding = self.get_embedding()
+        self.dropout_val = dropout
         self.dropout = nn.Dropout(p=dropout)
+        self.embedding = self.get_embedding()
 
-        self.blstm = nn.LSTM(input_size=self.embedding.embedding_dim,
+        self.blstm = nn.LSTM(input_size=self.embed_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
                             dropout=dropout,
@@ -50,24 +50,33 @@ class BiLSTMVanila(BiLSTM):
     def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
         super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
 
-
     def get_embedding(self):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+
 
 class BiLSTMChar(BiLSTM):
     def __init__(self, embedding_dim: int, hidden_dim: int, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
         super().__init__(embedding_dim, hidden_dim, chars_vocab, dropout, sent_len)
 
-
-
-
     def get_embedding(self):
+        embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        lstm = nn.LSTM(input_size=embed.embedding_dim,
+                            hidden_size=self.hidden_dim,
+                            dropout=self.dropout_val)
+        seq = nn.Sequential(embed, lstm)
+        return seq
 
-        return
+    def forward(self, x, x_lens):
+        _, (last_hidden_state, c_n) = self.embedding(x)
+        embeds = c_n[-1]
+        x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
+        out, (last_hidden_state, c_n) = self.blstm(x_packed)
+        out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
+        out = self.relu(out)
+        out = self.linear(out)
+        out = out[:, :max(x_lens)]
 
-
-
-
+        return out.flatten(0, 1)
 
 
 class SeqLstm(nn.Module):
