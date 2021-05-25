@@ -1,13 +1,5 @@
 import argparse
-from typing import List
-
-from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
-
 import torch
-from torch import optim
-from torch import nn
-from torch.utils.data import DataLoader, Dataset
 
 from models import BiLSTMVanila, BiLSTMChar
 from trainer import Trainer

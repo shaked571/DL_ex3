@@ -77,7 +77,11 @@ class TokenDataFile(Dataset):
                     curr_words = []
                     curr_labels = []
             else:
-                word, label = tuple(line.strip().split(self.separator))
+                if 'test' in self.data_path:
+                    word = line.strip()
+                    label = 'O'
+                else:
+                    word, label = tuple(line.strip().split(self.separator))
                 curr_words.append(word)
                 curr_labels.append(label)
 
@@ -101,7 +105,7 @@ class TokenDataFile(Dataset):
         words = self.data[index].words
         labels = self.data[index].labels
 
-        if self.mission in {'a','b'}:
+        if self.mission in {'a', 'b'}:
             words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
             label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
