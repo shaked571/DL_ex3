@@ -60,10 +60,10 @@ class BiLSTMVanila(BiLSTM):
 
 
 class LSTMEmbedding(nn.Module):
-    def __init__(self, vocab_size, embed_dim, hidden_dim, dropout_val):
+    def __init__(self, vocab_size, embed_dim, hidden_dim):
         super(LSTMEmbedding, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
-        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim, dropout=dropout_val)
+        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim)
         self.relu = nn.ReLU()
 
     def forward(self, x, x_lens):
@@ -86,7 +86,7 @@ class BiLSTMChar(BiLSTM):
                             bidirectional=True)
 
     def get_embedding(self):
-        return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim, self.dropout_val)
+        return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim)
 
     def forward(self, x, x_lens):
         embed_char, lens = self.tarnsform_embded_char(x)
