@@ -89,7 +89,6 @@ if __name__ == '__main__':
          batch_size=args.batch_size,
          dropout=args.drop_out,
          lstm_hidden_dim=args.lstm_hidden_dim,
-         hidden_dim=args.hidden_dim,
-         sent_len=args.sent_len)
+         hidden_dim=args.hidden_dim)
 
 
