@@ -166,6 +166,9 @@ class BiLSTMSubWords(BiLSTM):
             words_suffixes.append(suffix)
         prefixes_tensor = torch.tensor(words_prefixes).to(torch.int64)
         suffixes_tensor = torch.tensor(words_suffixes).to(torch.int64)
+
+        prefixes_tensor = prefixes_tensor.to(self.device)
+        suffixes_tensor = suffixes_tensor.to(self.device)
         return prefixes_tensor, suffixes_tensor
 
     def get_embedding_subwords(self, x):
@@ -187,7 +190,6 @@ class BiLSTMSubWords(BiLSTM):
 
     def forward(self, x, x_lens):
         embeds = self.get_embedding_subwords(x)
-        embeds = embeds.to(self.device)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
         out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
