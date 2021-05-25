@@ -77,7 +77,11 @@ class TokenDataFile(Dataset):
                     curr_words = []
                     curr_labels = []
             else:
-                word, label = tuple(line.strip().split(self.separator))
+                if 'test' in self.data_path:
+                    word = line.strip()
+                    label = 'O'
+                else:
+                    word, label = tuple(line.strip().split(self.separator))
                 curr_words.append(word)
                 curr_labels.append(label)
 
