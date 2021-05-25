@@ -86,30 +86,12 @@ class TokenDataFile(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def get_sub_words_tensor(self, words):
-        words_prefixes = []
-        words_suffixes = []
-        for w in words:
-            prefix, suffix = self.sub_words.get_sub_words_indexes_by_word(w)
-            words_prefixes.append(prefix)
-            words_suffixes.append(suffix)
-        prefixes_tensor = torch.tensor(words_prefixes).to(torch.int64)
-        suffixes_tensor = torch.tensor(words_suffixes).to(torch.int64)
-        return prefixes_tensor, suffixes_tensor
-
     def __getitem__(self, index):
         words = self.data[index].words
         labels = self.data[index].labels
 
-        if self.mission in {'a','b'}:
+        if self.mission in {'a', 'b', 'c'}:
             words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
-            label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
-
-
-        elif self.mission == 'c':
-            words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
-            prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)
-            words_tensor = torch.stack((words_tensor, prefixes_tensor, suffixes_tensor), dim=0)
             label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
         elif self.mission == 'd':

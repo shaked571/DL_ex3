@@ -83,14 +83,32 @@ class CharsVocab(Vocab):
                 indexes.append(self.token2i[self.UNKNOWN_TOKEN])
         return indexes
 
-#TODO################################################################
-class SubWords(Vocab):
+
+class SubWords:
+    SUB_WORD_SIZE = 3
+    SHORT_SUB_WORD = "SHORT_WORD"
+    UNKNOWN_SUB_WORD = "UNKNOW_SUB_WORD"
+    PAD_DUMMY = "PAD_DUMMY"
+    PAD_IDX = 0
+
     def __init__(self, train_file: str, task: str):
         self.train_file = train_file
-        super().__init__(task)
+        self.separator = " " if task == "pos" else "\t"
+        self.suffix, self.prefix = self.get_prefix_and_suffix()
+
+        self.suffix.insert(self.PAD_IDX, self.PAD_DUMMY)
+        self.prefix.insert(self.PAD_IDX, self.PAD_DUMMY)
+
+        self.suffix_num = len(self.suffix)
+        self.prefix_num = len(self.prefix)
+
+        self.suffix2i = {s: i for i, s in enumerate(self.suffix)}
+        self.i2suffix = {i: s for i, s in enumerate(self.suffix)}
+        self.prefix2i = {p: i for i, p in enumerate(self.prefix)}
+        self.i2prefix = {i: p for i, p in enumerate(self.prefix)}
 
     def get_unique(self):
-        chars = {self.UNKNOWN_TOKEN}
+        chars = {self.UNKNOWN_SUB_WORD}
         with open(self.train_file) as f:
             lines = f.readlines()
 
@@ -100,19 +118,49 @@ class SubWords(Vocab):
             word, _ = line.strip().split(self.separator)
             chars.update([c for c in word])
 
-        return chars, __
+        return chars, _
 
-    def get_chars_indexes_by_word(self, word):
-        word_chars = [c for c in word]
-        indexes = []
-        # add chars indexes
-        for c in word_chars:
-            if c in self.token2i:
-                indexes.append(self.token2i[c])
-            else:
-                indexes.append(self.token2i[self.UNKNOWN_TOKEN])
-        return indexes
-#TODO################################################################
+    def get_sub_words_indexes_by_word(self, word):
+        if word == self.PAD_DUMMY:
+            return 0, 0
+
+        if len(word) < self.SUB_WORD_SIZE:
+            return self.prefix2i[self.SHORT_SUB_WORD], self.suffix2i[self.SHORT_SUB_WORD]
+
+        prefix, suffix = self.get_sub_words_by_word(word)
+        if prefix not in self.prefix2i:
+            prefix = self.UNKNOWN_SUB_WORD
+        if suffix not in self.suffix2i:
+            suffix = self.UNKNOWN_SUB_WORD
+
+        return self.prefix2i[prefix], self.suffix2i[suffix]
+
+    def get_sub_words_by_word(self, word):
+        suffix = word[len(word) - self.SUB_WORD_SIZE:]
+        prefix = word[:self.SUB_WORD_SIZE]
+        return prefix, suffix
+
+    def get_prefix_and_suffix(self):
+        suffixes = {self.SHORT_SUB_WORD, self.UNKNOWN_SUB_WORD}
+        prefixes = {self.SHORT_SUB_WORD, self.UNKNOWN_SUB_WORD}
+
+        with open(self.train_file) as f:
+            lines = f.readlines()
+
+        for line in lines:
+            if line == "" or line == "\n":
+                continue
+            word, _ = line.strip().split(self.separator)
+
+            if len(word) < self.SUB_WORD_SIZE:
+                continue
+
+            prefix, suffix = self.get_sub_words_by_word(word)
+            suffixes.add(suffix)
+            prefixes.add(prefix)
+
+        return list(prefixes), list(suffixes)
+
 
 class SeqVocab(Vocab):
     def __init__(self, task: str):

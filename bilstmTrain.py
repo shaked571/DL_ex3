@@ -1,17 +1,8 @@
 import argparse
-from typing import List
-
-from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
-
 import torch
-from torch import optim
-from torch import nn
-from torch.utils.data import DataLoader, Dataset
-
-from models import BiLSTMVanila, BiLSTMChar
+from models import BiLSTMVanila, BiLSTMChar, BiLSTMSubWords
 from trainer import Trainer
-from vocab import TokenVocab, CharsVocab
+from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
 torch.manual_seed(1)
 
@@ -19,7 +10,7 @@ torch.manual_seed(1)
 def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
          embedding_dim=20, hidden_dim=100, dropout=0.2, lstm_hidden_dim=50):
 
-    sent_len = 100 if task == "ner" else 150
+    sent_len = 110 if task == "ner" else 150
     chars_vocab = None
     sub_words = None
 
@@ -31,6 +22,10 @@ def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='
         chars_vocab = CharsVocab(train_file_name, task)
         model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim,  lstm_hidden_dim=lstm_hidden_dim, vocab=vocab, chars_vocab=chars_vocab,
                            dropout=dropout, sent_len=sent_len)
+    elif mission == 'c':
+        sub_words = SubWords(train_file_name, task)
+        model = BiLSTMSubWords(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, sub_words=sub_words,
+                               dropout=dropout, sent_len=sent_len)
     else:
         raise ValueError(f"Not supporting repr: {mission} see help for details.")
 

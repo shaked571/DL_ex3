@@ -4,7 +4,7 @@ import torch
 from torch import nn, Tensor
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from vocab import Vocab, CharsVocab
+from vocab import Vocab, CharsVocab, SubWords
 import abc
 import torch.nn.functional as F
 from itertools import islice
@@ -89,7 +89,7 @@ class BiLSTMChar(BiLSTM):
         return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim)
 
     def forward(self, x, x_lens):
-        embed_char, lens = self.tarnsform_embded_char(x)
+        embed_char, lens = self.transform_embed_char(x)
         embed_char = embed_char.to(self.device)
         c_n = self.embedding(embed_char, lens)
 
@@ -115,7 +115,7 @@ class BiLSTMChar(BiLSTM):
         split_x = self.split_by_lengths(x, x_lens)
         return torch.nn.utils.rnn.pad_sequence(split_x, batch_first=True)
 
-    def tarnsform_embded_char(self, x):
+    def transform_embed_char(self, x):
         sents = []
         max_len_word = -1
         for s in x:
@@ -145,6 +145,56 @@ class BiLSTMChar(BiLSTM):
                 c_w += [0] * (max_len - len(c_w))
         chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
         return chars_tensor, lens
+
+
+class BiLSTMSubWords(BiLSTM):
+    def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, sub_words: SubWords, dropout=0.2, sent_len=128):
+        super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
+        self.sub_words = sub_words
+        self.prefix_embedding = nn.Embedding(self.sub_words.prefix_num, self.embed_dim, padding_idx=0)
+        self.suffix_embedding = nn.Embedding(self.sub_words.suffix_num, self.embed_dim, padding_idx=0)
+
+    def get_embedding(self):
+        return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+
+    def get_sub_words_tensor(self, words):
+        words_prefixes = []
+        words_suffixes = []
+        for w in words:
+            prefix, suffix = self.sub_words.get_sub_words_indexes_by_word(w)
+            words_prefixes.append(prefix)
+            words_suffixes.append(suffix)
+        prefixes_tensor = torch.tensor(words_prefixes).to(torch.int64)
+        suffixes_tensor = torch.tensor(words_suffixes).to(torch.int64)
+        return prefixes_tensor, suffixes_tensor
+
+    def get_embedding_subwords(self, x):
+        batch = None
+        for sent_tensor in x:
+            words = [self.vocab.i2token[i.item()] for i in sent_tensor]
+            # words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
+            prefixes_tensor, suffixes_tensor = self.get_sub_words_tensor(words)
+            out_word = self.embedding(sent_tensor)
+            out_pre = self.prefix_embedding(prefixes_tensor)
+            out_suf = self.suffix_embedding(suffixes_tensor)
+            embeds = torch.stack((out_word, out_pre, out_suf), dim=0).sum(axis=0)
+            if batch is None:
+                batch = torch.unsqueeze(embeds, dim=0)
+            else:
+                batch = torch.cat((batch, torch.unsqueeze(embeds, dim=0)), dim=0)
+        # batch = torch.tensor(batch).to(torch.int64)
+        return batch
+
+    def forward(self, x, x_lens):
+        embeds = self.get_embedding_subwords(x)
+        x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
+        out, (last_hidden_state, c_n) = self.blstm(x_packed)
+        out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
+        out = self.relu(out)
+        out = self.linear(out)
+        out = out[:, :max(x_lens)]
+
+        return out.flatten(0, 1)
 
 
 class SeqLstm(nn.Module):
