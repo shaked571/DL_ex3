@@ -187,6 +187,7 @@ class BiLSTMSubWords(BiLSTM):
 
     def forward(self, x, x_lens):
         embeds = self.get_embedding_subwords(x)
+        embeds = embeds.to(self.device)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
         out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
