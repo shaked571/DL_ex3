@@ -1,7 +1,7 @@
 import argparse
 import torch
 
-from models import BiLSTMVanila, BiLSTMChar, BiLSTMSubWords
+from models import BiLSTMVanila, BiLSTMChar, BiLSTMSubWords, BiLSTMConcat
 from trainer import Trainer
 from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
@@ -27,6 +27,11 @@ def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='
         sub_words = SubWords(train_file_name, task)
         model = BiLSTMSubWords(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, sub_words=sub_words,
                                dropout=dropout, sent_len=sent_len)
+    elif mission == 'd':
+        chars_vocab = CharsVocab(train_file_name, task)
+        model = BiLSTMConcat(embedding_dim=embedding_dim, hidden_dim=hidden_dim, lstm_hidden_dim=lstm_hidden_dim,
+                           vocab=vocab, chars_vocab=chars_vocab,
+                           dropout=dropout, sent_len=sent_len)
     else:
         raise ValueError(f"Not supporting repr: {mission} see help for details.")
 

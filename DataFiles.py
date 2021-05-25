@@ -94,17 +94,8 @@ class TokenDataFile(Dataset):
         words = self.data[index].words
         labels = self.data[index].labels
 
-        if self.mission in {'a', 'b', 'c'}:
-            words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
-            label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
-
-        elif self.mission == 'd':
-            words_tensor = [torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64),
-                            self.get_chars_tensor(words)]
-            label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
-            
-        else:
-            raise ValueError(f"Data loader dont support mission: {self.mission}, you may use [a,b,c,d] ")
+        words_tensor = torch.tensor([self.vocab.get_word_index(word) for word in words]).to(torch.int64)
+        label_tensor = torch.tensor([self.vocab.label2i[label] for label in labels]).to(torch.int64)
 
         return words_tensor, label_tensor
 

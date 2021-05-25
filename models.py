@@ -21,7 +21,7 @@ class BiLSTM(nn.Module, abc.ABC):
         self.embed_dim = embedding_dim
         self.dropout_val = dropout
         self.dropout = nn.Dropout(p=dropout)
-        self.embedding = self.get_embedding()
+        self.embedding = self.get_embedding_layer()
 
         self.blstm = nn.LSTM(input_size=self.embed_dim,
                             hidden_size=hidden_dim,
@@ -32,7 +32,7 @@ class BiLSTM(nn.Module, abc.ABC):
         self.linear = nn.Linear(2*hidden_dim, self.vocab.num_of_labels)
 
     def forward(self, x, x_lens):
-        embeds = self.embedding(x)
+        embeds = self.get_embed_vectors(x, x_lens)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
         out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
@@ -47,7 +47,11 @@ class BiLSTM(nn.Module, abc.ABC):
         self.load_state_dict(checkpoint)
 
     @abc.abstractmethod
-    def get_embedding(self):
+    def get_embedding_layer(self):
+        pass
+
+    @abc.abstractmethod
+    def get_embed_vectors(self, x, x_lens):
         pass
 
 
@@ -55,8 +59,11 @@ class BiLSTMVanila(BiLSTM):
     def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
         super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
 
-    def get_embedding(self):
+    def get_embedding_layer(self):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+
+    def get_embed_vectors(self, x, x_lens):
+        return self.embedding(x)
 
 
 class LSTMEmbedding(nn.Module):
@@ -85,25 +92,17 @@ class BiLSTMChar(BiLSTM):
                             dropout=dropout,
                             bidirectional=True)
 
-    def get_embedding(self):
+    def get_embedding_layer(self):
         return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim)
 
-    def forward(self, x, x_lens):
+    def get_embed_vectors(self, x, x_lens):
         embed_char, lens = self.transform_embed_char(x)
         embed_char = embed_char.to(self.device)
         c_n = self.embedding(embed_char, lens)
 
         embeds = c_n[-1]
         embeds_p = self.repack(embeds, x_lens)
-
-        x_packed = pack_padded_sequence(embeds_p, x_lens, batch_first=True, enforce_sorted=False)
-        out, (last_hidden_state, c_n) = self.blstm(x_packed)
-        out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
-        out = self.relu(out)
-        out = self.linear(out)
-        out = out[:, :max(x_lens)]
-
-        return out.flatten(0, 1)
+        return embeds_p
 
     def split_by_lengths(self, seq, num):
         it = iter(seq)
@@ -154,7 +153,7 @@ class BiLSTMSubWords(BiLSTM):
         self.prefix_embedding = nn.Embedding(self.sub_words.prefix_num, self.embed_dim, padding_idx=0)
         self.suffix_embedding = nn.Embedding(self.sub_words.suffix_num, self.embed_dim, padding_idx=0)
 
-    def get_embedding(self):
+    def get_embedding_layer(self):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
 
     def get_sub_words_tensor(self, words):
@@ -171,7 +170,7 @@ class BiLSTMSubWords(BiLSTM):
         suffixes_tensor = suffixes_tensor.to(self.device)
         return prefixes_tensor, suffixes_tensor
 
-    def get_embedding_subwords(self, x):
+    def get_embed_vectors(self, x, x_lens):
         batch = None
         for sent_tensor in x:
             words = [self.vocab.i2token[i.item()] for i in sent_tensor]
@@ -185,19 +184,24 @@ class BiLSTMSubWords(BiLSTM):
                 batch = torch.unsqueeze(embeds, dim=0)
             else:
                 batch = torch.cat((batch, torch.unsqueeze(embeds, dim=0)), dim=0)
-        # batch = torch.tensor(batch).to(torch.int64)
         return batch
 
-    def forward(self, x, x_lens):
-        embeds = self.get_embedding_subwords(x)
-        x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
-        out, (last_hidden_state, c_n) = self.blstm(x_packed)
-        out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
-        out = self.relu(out)
-        out = self.linear(out)
-        out = out[:, :max(x_lens)]
 
-        return out.flatten(0, 1)
+class BiLSTMConcat(BiLSTM):
+    def __init__(self, embedding_dim: int, hidden_dim: int, lstm_hidden_dim: int, vocab: Vocab, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
+        super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
+        self.embedding_bilstm = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab,
+                                             dropout=dropout, sent_len=sent_len)
+        self.chars_bilstm = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim, lstm_hidden_dim=lstm_hidden_dim,
+                                       vocab=vocab, chars_vocab=chars_vocab, dropout=dropout, sent_len=sent_len)
+
+    def get_embedding_layer(self):
+        return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+
+    def get_embed_vectors(self, x, x_lens):
+        embed_vec = self.embedding_bilstm.get_embed_vectors(x, x_lens)
+        chars_vec = self.chars_bilstm.get_embed_vectors(x, x_lens)
+        return torch.cat((embed_vec, chars_vec), dim=2)
 
 
 class SeqLstm(nn.Module):
