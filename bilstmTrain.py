@@ -17,7 +17,7 @@ torch.manual_seed(1)
 
 
 def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
-         embedding_dim=20, hidden_dim=200, dropout=0.2, sent_len=128, lstm_hidden_dim=50):
+         embedding_dim=20, hidden_dim=100, dropout=0.2, sent_len=128, lstm_hidden_dim=50):
 
     chars_vocab = None
     sub_words = None
@@ -75,6 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=int)
     parser.add_argument('-do', '--drop_out', help='fropout value', default=0.2, type=float)
     parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=50, type=int)
+    parser.add_argument('-hd', '--hidden_dim', help='main hidden dimension value', default=50, type=int)
     args = parser.parse_args()
     main(mission=args.repr,
          train_file_name=args.trainFile,
@@ -87,6 +88,7 @@ if __name__ == '__main__':
          batch_size=args.batch_size,
          dropout=args.drop_out,
          lstm_hidden_dim=args.lstm_hidden_dim,
+         hidden_dim=args.hidden_dim,
          sent_len=args.sent_len)
 
 
