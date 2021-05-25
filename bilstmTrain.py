@@ -74,6 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--learning_rate', help='Number of epochs', default=0.001, type=float)
     parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=int)
     parser.add_argument('-do', '--drop_out', help='fropout value', default=0.2, type=float)
+    parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=50, type=int)
     args = parser.parse_args()
     main(mission=args.repr,
          train_file_name=args.trainFile,
@@ -85,6 +86,7 @@ if __name__ == '__main__':
          l_r=args.learning_rate,
          batch_size=args.batch_size,
          dropout=args.drop_out,
+         lstm_hidden_dim=args.lstm_hidden_dim,
          sent_len=args.sent_len)
 
 
