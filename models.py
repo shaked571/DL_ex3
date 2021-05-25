@@ -6,6 +6,8 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from vocab import Vocab, CharsVocab
 import abc
+import torch.nn.functional as F
+from itertools import islice
 
 
 class BiLSTM(nn.Module, abc.ABC):
@@ -95,7 +97,9 @@ class BiLSTMChar(BiLSTM):
 
         embeds = c_n[-1]
         #re pack them
-        x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
+        embeds_p = self.repack(embeds, x_lens)
+
+        x_packed = pack_padded_sequence(embeds_p, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
         out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
         out = self.relu(out)
@@ -104,13 +108,15 @@ class BiLSTMChar(BiLSTM):
 
         return out.flatten(0, 1)
 
+    def split_by_lengths(self, seq, num):
+        it = iter(seq)
+        out = [torch.stack(x) for x in (list(islice(it, n)) for n in num) if x]
+        remain = list(it)
+        return out if not remain else out + torch.stack(remain)
+
     def repack(self, x, x_lens):
-        max_len = max(x_lens)
-        new_x = []
-        first = 0
-        for sent_len in x_lens:
-            tensor_sent = x[first:sent_len + first]
-            first += sent_len
+        split_x = self.split_by_lengths(x, x_lens)
+        return torch.nn.utils.rnn.pad_sequence(split_x, batch_first=True)
 
     def tarnsform_embded_char(self, x):
         sents = []
