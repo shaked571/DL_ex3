@@ -93,8 +93,8 @@ class BiLSTMChar(BiLSTM):
         embed_char, lens = self.tarnsform_embded_char(x)
         _, (last_hidden_state, c_n) = self.embedding(embed_char, lens)
 
-        #re pack them
         embeds = c_n[-1]
+        #re pack them
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
         out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
@@ -104,6 +104,13 @@ class BiLSTMChar(BiLSTM):
 
         return out.flatten(0, 1)
 
+    def repack(self, x, x_lens):
+        max_len = max(x_lens)
+        new_x = []
+        first = 0
+        for sent_len in x_lens:
+            tensor_sent = x[first:sent_len + first]
+            first += sent_len
 
     def tarnsform_embded_char(self, x):
         sents = []
