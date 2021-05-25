@@ -17,7 +17,7 @@ torch.manual_seed(1)
 
 
 def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
-         embedding_dim=20, hidden_dim=200, dropout=0.2, sent_len=128):
+         embedding_dim=20, hidden_dim=200, dropout=0.2, sent_len=128, lstm_hidden_dim=100):
 
     chars_vocab = None
     sub_words = None
@@ -28,7 +28,7 @@ def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='
                              sent_len=sent_len)
     elif mission == 'b':
         chars_vocab = CharsVocab(train_file_name, task)
-        model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim,  vocab=vocab, chars_vocab=chars_vocab,
+        model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim,  lstm_hidden_dim=lstm_hidden_dim, vocab=vocab, chars_vocab=chars_vocab,
                            dropout=dropout, sent_len=sent_len)
     else:
         raise ValueError(f"Not supporting repr: {mission} see help for details.")

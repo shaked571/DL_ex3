@@ -58,7 +58,6 @@ class BiLSTMVanila(BiLSTM):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
 
 
-
 class LSTMEmbedding(nn.Module):
     def __init__(self,vocab_size, embed_dim,hidden_dim, dropout_val):
         super(LSTMEmbedding, self).__init__()
@@ -72,31 +71,25 @@ class LSTMEmbedding(nn.Module):
         return out
 
 
-
-
-
 class BiLSTMChar(BiLSTM):
-    def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab,chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
+    def __init__(self, embedding_dim: int, hidden_dim: int, lstm_hidden_dim: int, vocab: Vocab, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
+        self.lstm_hidden_dim = lstm_hidden_dim
         super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
         self.char_vocab = chars_vocab
+        self.blstm = nn.LSTM(input_size=self.lstm_hidden_dim,
+                            hidden_size=hidden_dim,
+                            num_layers=2,
+                            dropout=dropout,
+                            bidirectional=True)
 
-
-    # def LSTMEmbedding(self,x, lens ):
-    #     embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
-    #     lstm = nn.LSTM(input_size=embed.embedding_dim,
-    #                         hidden_size=self.hidden_dim,
-    #                         dropout=self.dropout_val)
-    #
-    #
     def get_embedding(self):
-        return LSTMEmbedding(self.vocab_size, self.embed_dim,self.hidden_dim, self.dropout_val)
+        return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim, self.dropout_val)
 
     def forward(self, x, x_lens):
         embed_char, lens = self.tarnsform_embded_char(x)
         _, (last_hidden_state, c_n) = self.embedding(embed_char, lens)
 
         embeds = c_n[-1]
-        #re pack them
         embeds_p = self.repack(embeds, x_lens)
 
         x_packed = pack_padded_sequence(embeds_p, x_lens, batch_first=True, enforce_sorted=False)
@@ -135,7 +128,6 @@ class BiLSTMChar(BiLSTM):
             lens += l
         res = torch.stack(res)
         return res, lens
-
 
     def get_chars_tensor(self, words, max_len) -> Tuple[Tensor, List[int]]:
         chars_tensor = []
