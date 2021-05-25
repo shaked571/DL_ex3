@@ -59,16 +59,18 @@ class BiLSTMVanila(BiLSTM):
 
 
 class LSTMEmbedding(nn.Module):
-    def __init__(self,vocab_size, embed_dim,hidden_dim, dropout_val):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, dropout_val):
         super(LSTMEmbedding, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
         self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim, dropout=dropout_val)
+        self.relu = nn.ReLU()
 
     def forward(self, x, x_lens):
         out = self.embed(x)
         out = pack_padded_sequence(out, x_lens, batch_first=True, enforce_sorted=False)
-        out = self.lstm(out)
-        return out
+        out, (last_hidden_state, c_n) = self.lstm(out)
+        c_n = self.relu(c_n)
+        return c_n
 
 
 class BiLSTMChar(BiLSTM):
@@ -87,7 +89,7 @@ class BiLSTMChar(BiLSTM):
 
     def forward(self, x, x_lens):
         embed_char, lens = self.tarnsform_embded_char(x)
-        _, (last_hidden_state, c_n) = self.embedding(embed_char, lens)
+        c_n = self.embedding(embed_char, lens)
 
         embeds = c_n[-1]
         embeds_p = self.repack(embeds, x_lens)
