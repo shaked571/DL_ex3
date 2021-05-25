@@ -1,5 +1,7 @@
+from typing import Tuple, List
+
 import torch
-from torch import nn
+from torch import nn, Tensor
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from vocab import Vocab, CharsVocab
@@ -54,20 +56,44 @@ class BiLSTMVanila(BiLSTM):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
 
 
-class BiLSTMChar(BiLSTM):
-    def __init__(self, embedding_dim: int, hidden_dim: int, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
-        super().__init__(embedding_dim, hidden_dim, chars_vocab, dropout, sent_len)
 
-    def get_embedding(self):
-        embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
-        lstm = nn.LSTM(input_size=embed.embedding_dim,
-                            hidden_size=self.hidden_dim,
-                            dropout=self.dropout_val)
-        seq = nn.Sequential(embed, lstm)
-        return seq
+class LSTMEmbedding(nn.Module):
+    def __init__(self,vocab_size, embed_dim,hidden_dim, dropout_val):
+        super(LSTMEmbedding, self).__init__()
+        self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim, dropout=dropout_val)
 
     def forward(self, x, x_lens):
-        _, (last_hidden_state, c_n) = self.embedding(x)
+        out = self.embed(x)
+        out = pack_padded_sequence(out, x_lens, batch_first=True, enforce_sorted=False)
+        out = self.lstm(out)
+        return out
+
+
+
+
+
+class BiLSTMChar(BiLSTM):
+    def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab,chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
+        super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
+        self.char_vocab = chars_vocab
+
+
+    # def LSTMEmbedding(self,x, lens ):
+    #     embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+    #     lstm = nn.LSTM(input_size=embed.embedding_dim,
+    #                         hidden_size=self.hidden_dim,
+    #                         dropout=self.dropout_val)
+    #
+    #
+    def get_embedding(self):
+        return LSTMEmbedding(self.vocab_size, self.embed_dim,self.hidden_dim, self.dropout_val)
+
+    def forward(self, x, x_lens):
+        embed_char, lens = self.tarnsform_embded_char(x)
+        _, (last_hidden_state, c_n) = self.embedding(embed_char, lens)
+
+        #re pack them
         embeds = c_n[-1]
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
@@ -77,6 +103,39 @@ class BiLSTMChar(BiLSTM):
         out = out[:, :max(x_lens)]
 
         return out.flatten(0, 1)
+
+
+    def tarnsform_embded_char(self, x):
+        sents = []
+        max_len_word = -1
+        for s in x:
+            words = [self.vocab.i2token[i.item()] for i in s if i.item() != self.vocab.PAD_IDX]
+            sents.append(words)
+            for w in words:
+                if len(w) > max_len_word:
+                    max_len_word = len(w)
+        res = []
+        lens = []
+        for s in sents:
+            chars_tensor, l = self.get_chars_tensor(s, max_len_word)
+            res += chars_tensor
+            lens += l
+        res = torch.stack(res)
+        return res, lens
+
+
+    def get_chars_tensor(self, words, max_len) -> Tuple[Tensor, List[int]]:
+        chars_tensor = []
+        lens = []
+        for word in words:
+            chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
+            chars_tensor.append(chars_indices)
+        for c_w in chars_tensor:
+            lens.append(len(c_w))
+            if len(c_w) < max_len:
+                c_w += [0] * (max_len - len(c_w))
+        chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
+        return chars_tensor, lens
 
 
 class SeqLstm(nn.Module):

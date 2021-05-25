@@ -3,6 +3,7 @@ import abc
 
 class Vocab(abc.ABC):
     UNKNOWN_TOKEN = "UUUNKKK"
+    PAD_DUMMY = "PAD_DUMMY"
     PAD_IDX = 0
 
     def __init__(self, task):
@@ -10,7 +11,7 @@ class Vocab(abc.ABC):
         self.separator = " " if self.task == "pos" else "\t"
         self.tokens, self.labels = self.get_unique()
         self.tokens = list(self.tokens)
-        self.tokens.insert(self.PAD_IDX, "PAD_DUMMY")
+        self.tokens.insert(self.PAD_IDX, self.PAD_DUMMY)
         self.vocab_size = len(self.tokens)
         self.num_of_labels = len(self.labels)
         self.i2token = {i: w for i, w in enumerate(self.tokens)}

@@ -19,17 +19,17 @@ torch.manual_seed(1)
 def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
          embedding_dim=20, hidden_dim=200, dropout=0.2, sent_len=128):
 
-    vocab = None
     chars_vocab = None
     sub_words = None
 
+    vocab = TokenVocab(train_file_name, task)
     if mission == 'a':
-        vocab = TokenVocab(train_file_name, task)
         model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropout=dropout,
                              sent_len=sent_len)
     elif mission == 'b':
         chars_vocab = CharsVocab(train_file_name, task)
-        model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim, chars_vocab=chars_vocab, dropout=dropout, sent_len=sent_len)
+        model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim,  vocab=vocab, chars_vocab=chars_vocab,
+                           dropout=dropout, sent_len=sent_len)
     else:
         raise ValueError(f"Not supporting repr: {mission} see help for details.")
 
@@ -50,7 +50,8 @@ def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='
                       lr=l_r,
                       train_batch_size=batch_size,
                       optimizer=optimizer,
-                      vocab=vocab if mission != "b" else chars_vocab,
+                      vocab=vocab,
+                      char_vocab = chars_vocab,
                       output_path=output_path,
                       n_ep=epochs)
     trainer.train()
