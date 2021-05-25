@@ -11,7 +11,7 @@ torch.manual_seed(1)
 def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
          embedding_dim=20, hidden_dim=100, dropout=0.2, lstm_hidden_dim=50):
 
-    sent_len = 110 if task == "ner" else 150
+    sent_len = 120 if task == "ner" else 150
     chars_vocab = None
     sub_words = None
 
