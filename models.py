@@ -20,7 +20,6 @@ class BiLSTM(nn.Module, abc.ABC):
         self.sent_len = sent_len
         self.embed_dim = embedding_dim
         self.dropout_val = dropout
-        self.dropout = nn.Dropout(p=dropout)
         self.embedding = self.get_embedding_layer()
 
         self.blstm = nn.LSTM(input_size=self.embed_dim,
@@ -36,7 +35,7 @@ class BiLSTM(nn.Module, abc.ABC):
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
         out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
-        out = self.relu(out)
+        # out = self.relu(out)
         out = self.linear(out)
         out = out[:, :max(x_lens)]
 
@@ -77,7 +76,7 @@ class LSTMEmbedding(nn.Module):
         out = self.embed(x)
         out = pack_padded_sequence(out, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.lstm(out)
-        c_n = self.relu(c_n)
+        # c_n = self.relu(c_n)
         return c_n
 
 
