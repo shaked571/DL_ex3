@@ -194,6 +194,11 @@ class BiLSTMConcat(BiLSTM):
                                              dropout=dropout, sent_len=sent_len)
         self.chars_bilstm = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim, lstm_hidden_dim=lstm_hidden_dim,
                                        vocab=vocab, chars_vocab=chars_vocab, dropout=dropout, sent_len=sent_len)
+        self.blstm = nn.LSTM(input_size=self.embed_dim + lstm_hidden_dim,
+                            hidden_size=hidden_dim,
+                            num_layers=2,
+                            dropout=dropout,
+                            bidirectional=True)
 
     def get_embedding_layer(self):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
