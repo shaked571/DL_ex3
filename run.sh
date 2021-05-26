@@ -19,7 +19,7 @@ do
        echo "Output:"
         echo "part${part}_task${task}_hiddendim${hidden_dim}_optim_${optimizer}_lr${l_r}_batch_size${batch_size}"
 
-         python main.py \
+         python bilstmTrain.py \
          "${part}" \
          "${task}_${part}_hd_${hidden_dim}_b_${batch_size}" \
          "data/${task}/train" \
