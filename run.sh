@@ -21,8 +21,8 @@ do
 
          python bilstmTrain.py \
          "${part}" \
-         "${task}_${part}_hd_${hidden_dim}_b_${batch_size}" \
          "data/${task}/train" \
+         "${task}_${part}_hd_${hidden_dim}_lhd_${lhd}_b_${batch_size}_l_r_${l_r}" \
          -t "${task}" \
          -dev "data/${task}/dev" \
          --o $optimizer \
