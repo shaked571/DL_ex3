@@ -11,7 +11,7 @@ do
       do
       for l_r in  0.001 0.003 0.005
       do
-       for batch_size in 16 32 64 128
+       for batch_size in 25 50 100
        do
        for lhd in 30 50 100
        do
