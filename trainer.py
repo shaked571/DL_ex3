@@ -22,7 +22,7 @@ def pad_collate(batch):
 
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab,char_vocab: Vocab, n_ep=1,
-                 optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.01, filter_num=30, window_size=3, part=None,
+                 optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.01, part=None,
                  output_path=None):
         # TODO Load for testing need to make surwe part 1 and 2 would still work.
         self.part = part
@@ -47,13 +47,19 @@ class Trainer:
         self.loss_func = nn.CrossEntropyLoss()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
+        lstm_dim = None
+        try:
+            lstm_dim = self.model.lstm_hidden_dim
+        except Exception:
+            pass
         self.model_args = {"part": self.part, "task": self.vocab.task, "lr": lr, "epoch": self.n_epochs,
-                           "batch_size": train_batch_size, "filter_num": filter_num, "window_size": window_size,
-                           "steps_to_eval": self.steps_to_eval, "optim": optimizer, "hidden_dim": self.model.hidden_dim}
-        self.writer = SummaryWriter(log_dir=f"tensor_board/{self.suffix_run()}")
+                           "batch_size": train_batch_size ,"hidden_dim": self.model.hidden_dim, "lstm_dim": lstm_dim}
+        if output_path is None:
+            output_path = self.suffix_run()
 
-        self.saved_model_path = f"{self.suffix_run()}.bin" if output_path is None else f"{output_path}.bin"
+        self.saved_model_path = f"{output_path}.bin"
 
+        self.writer = SummaryWriter(log_dir=f"tensor_board/{output_path}")
         self.best_model = None
         self.best_score = 0
 

@@ -55,7 +55,8 @@ def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='
                       vocab=vocab,
                       char_vocab = chars_vocab,
                       output_path=output_path,
-                      n_ep=epochs)
+                      n_ep=epochs,
+                      part=mission)
     trainer.train()
 
 

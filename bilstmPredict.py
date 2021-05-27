@@ -63,7 +63,7 @@ def main(mission, test_f_name, model_path, task, train_file
         _, predicted = torch.max(output, 1)
         prediction += predicted.tolist()
     prediction = [vocab.i2label[i] for i in prediction]
-    dump_test_file(prediction, test_f_name, vocab.separator, f"{mission}_{task}")
+    dump_test_file(prediction, test_f_name, vocab.separator, f"{mission}_{task}_hd{hidden_dim}_lhd{lstm_hidden_dim}")
 
 
 
