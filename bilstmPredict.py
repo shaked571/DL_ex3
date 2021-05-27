@@ -3,9 +3,9 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from models import BiLSTMVanila, BiLSTMChar
+from models import BiLSTMVanila, BiLSTMChar, BiLSTMSubWords, BiLSTMConcat
 from trainer import pad_collate
-from vocab import TokenVocab, CharsVocab
+from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
 
 
@@ -47,6 +47,15 @@ def main(mission, test_f_name, model_path, task, train_file
         chars_vocab = CharsVocab(train_file, task)
         model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim,  lstm_hidden_dim=lstm_hidden_dim, vocab=vocab, chars_vocab=chars_vocab,
                            dropout=dropout, sent_len=sent_len)
+    elif mission == 'c':
+        sub_words = SubWords(train_file, task)
+        model = BiLSTMSubWords(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, sub_words=sub_words,
+                               dropout=dropout, sent_len=sent_len)
+    elif mission == 'd':
+        chars_vocab = CharsVocab(train_file, task)
+        model = BiLSTMConcat(embedding_dim=embedding_dim, hidden_dim=hidden_dim, lstm_hidden_dim=lstm_hidden_dim,
+                             vocab=vocab, chars_vocab=chars_vocab,
+                             dropout=dropout, sent_len=sent_len)
     else:
         raise ValueError(f"Not supporting repr: {mission} see help for details.")
     model.load_model(model_path)
