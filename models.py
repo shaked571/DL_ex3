@@ -29,6 +29,12 @@ class BiLSTM(nn.Module, abc.ABC):
                             bidirectional=True)
         self.relu = nn.ReLU()
         self.linear = nn.Linear(2*hidden_dim, self.vocab.num_of_labels)
+        for name, param in self.blstm.named_parameters():
+            if 'bias' in name:
+                continue
+            torch.nn.init.xavier_uniform_(param)
+        torch.nn.init.xavier_uniform_(self.linear.weight)
+
 
     def forward(self, x, x_lens):
         embeds = self.get_embed_vectors(x, x_lens)
@@ -59,6 +65,9 @@ class BiLSTMVanila(BiLSTM):
         super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
 
     def get_embedding_layer(self):
+        embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        torch.nn.init.xavier_uniform_(embed.weight)
+
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
 
     def get_embed_vectors(self, x, x_lens):
@@ -71,8 +80,17 @@ class LSTMEmbedding(nn.Module):
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
         self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim)
         self.relu = nn.ReLU()
+        torch.nn.init.xavier_uniform_(self.embed.weight)
+        for name, param in self.lstm.named_parameters():
+            if 'bias' in name:
+                continue
 
-    def forward(self, x, x_lens):
+            torch.nn.init.xavier_uniform_(param)
+
+
+
+
+def forward(self, x, x_lens):
         out = self.embed(x)
         out = pack_padded_sequence(out, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.lstm(out)
@@ -90,6 +108,11 @@ class BiLSTMChar(BiLSTM):
                             num_layers=2,
                             dropout=dropout,
                             bidirectional=True)
+        for name, param in self.blstm.named_parameters():
+            if 'bias' in name:
+                continue
+            torch.nn.init.xavier_uniform_(param)
+
 
     def get_embedding_layer(self):
         return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim)
@@ -151,9 +174,14 @@ class BiLSTMSubWords(BiLSTM):
         self.sub_words = sub_words
         self.prefix_embedding = nn.Embedding(self.sub_words.prefix_num, self.embed_dim, padding_idx=0)
         self.suffix_embedding = nn.Embedding(self.sub_words.suffix_num, self.embed_dim, padding_idx=0)
+        torch.nn.init.xavier_uniform_(self.prefix_embedding.weight)
+        torch.nn.init.xavier_uniform_(self.suffix_embedding.weight)
 
     def get_embedding_layer(self):
-        return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        torch.nn.init.xavier_uniform_(self.embed.weight)
+
+        return embed
 
     def get_sub_words_tensor(self, words):
         words_prefixes = []
@@ -200,7 +228,10 @@ class BiLSTMConcat(BiLSTM):
                             bidirectional=True)
 
     def get_embedding_layer(self):
-        return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        embed = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        torch.nn.init.xavier_uniform_(embed.weight)
+
+        return embed
 
     def get_embed_vectors(self, x, x_lens):
         embed_vec = self.embedding_bilstm.get_embed_vectors(x, x_lens)
