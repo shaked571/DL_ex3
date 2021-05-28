@@ -64,6 +64,7 @@ class Trainer:
         self.best_score = 0
 
     def train(self):
+        accuracy = {}
         for epoch in range(self.n_epochs):
             ###################
             # train the model #
@@ -88,13 +89,13 @@ class Trainer:
                 # update running training loss
                 train_loss += loss.item() * data.size(0)
                 step_loss += loss.item() * data.size(0)
-                if step*self.train_data.batch_size % self.steps_to_eval == 0 and step != 0:
-                    print(f"in step: {step} train loss: {step_loss}")
+                if (step+1)*self.train_data.batch_size % self.steps_to_eval == 0:
+                    print(f"in step: {(step+1)*self.train_data.batch_size} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
-                    self.evaluate_model(step * (epoch + 1), "step")
+                    self.evaluate_model((step+1)*self.train_data.batch_size *(epoch+1), "step")
             print(f"in epoch: {epoch + 1} train loss: {train_loss}")
-            self.writer.add_scalar('Loss/train', train_loss, epoch)
+            self.writer.add_scalar('Loss/train', train_loss, epoch+1)
             self.evaluate_model(epoch, "epoch")
 
     def evaluate_model(self, step, stage):
