@@ -26,6 +26,7 @@ class Trainer:
                  optimizer='AdamW', train_batch_size=32, steps_to_eval=2500, lr=0.01, part=None,
                  output_path=None):
         # TODO Load for testing need to make surwe part 1 and 2 would still work.
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.part = part
         self.model = model
         self.dev_batch_size = 128
@@ -47,7 +48,6 @@ class Trainer:
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
         self.loss_func = nn.CrossEntropyLoss(weight=self.label_weight)
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         lstm_dim = None
         try:
