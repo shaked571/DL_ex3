@@ -23,7 +23,7 @@ def pad_collate(batch):
 
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab,char_vocab: Vocab, n_ep=1,
-                 optimizer='AdamW', train_batch_size=32, steps_to_eval=2500, lr=0.01, part=None,
+                 optimizer='AdamW', train_batch_size=32, steps_to_eval=2500, lr=0.001, part=None,
                  output_path=None):
         # TODO Load for testing need to make surwe part 1 and 2 would still work.
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -32,7 +32,7 @@ class Trainer:
         self.dev_batch_size = 128
         self.vocab = vocab
         self.label_weight = self.get_label_weight(train_data)
-        self.label_weight.to(self.device)
+
         self.train_data = DataLoader(train_data, batch_size=train_batch_size, collate_fn=pad_collate)
         self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.char_vocab = char_vocab
@@ -85,7 +85,7 @@ class Trainer:
                 output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
                 # calculate the loss
 
-                loss = self.loss_func(output, target.view(-1))
+                loss = self.loss_func(output.to(self.device), target.view(-1).to(self.device))
                 # backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
                 # perform a single optimization step (parameter update)
