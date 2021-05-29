@@ -218,10 +218,14 @@ class Trainer:
         try:
             all_labels = np.array([self.vocab.label2i[item] for sublist in [t.labels for t in train_data.data] for item in sublist])
             classes=np.unique(all_labels)
-            cw = compute_class_weight(classes=classes, y=all_labels)
-            return torch.Tensor(cw)
+            cw = compute_class_weight('balanced', classes=classes, y=all_labels)
+            res = torch.Tensor(cw)
+            res.to(self.device)
+            return res
 
         except Exception as e:
-            return torch.Tensor([0.5, 0.5])
+            res = torch.Tensor([0.5, 0.5])
+            res.to(self.device)
+            return res
 
 
