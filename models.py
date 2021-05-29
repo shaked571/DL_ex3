@@ -27,7 +27,6 @@ class BiLSTM(nn.Module, abc.ABC):
                             num_layers=2,
                             dropout=dropout,
                             bidirectional=True)
-        self.relu = nn.ReLU()
         self.linear = nn.Linear(2*hidden_dim, self.vocab.num_of_labels)
         for name, param in self.blstm.named_parameters():
             if 'bias' in name:
@@ -40,12 +39,11 @@ class BiLSTM(nn.Module, abc.ABC):
         embeds = self.get_embed_vectors(x, x_lens)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
-        out, _ = pad_packed_sequence(out, total_length=self.sent_len, batch_first=True)
-        # out = self.relu(out)
+        out, _ = pad_packed_sequence(out, batch_first=True)
         out = self.linear(out)
-        out = out[:, :max(x_lens)]
-
-        return out.flatten(0, 1)
+        # out = out[:, :max(x_lens)]
+        out =  out.flatten(0, 1)
+        return out
 
     def load_model(self, path):
         checkpoint = torch.load(path, map_location="cuda" if torch.cuda.is_available() else "cpu")
@@ -79,7 +77,6 @@ class LSTMEmbedding(nn.Module):
         super(LSTMEmbedding, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
         self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim)
-        self.relu = nn.ReLU()
         torch.nn.init.xavier_uniform_(self.embed.weight)
         for name, param in self.lstm.named_parameters():
             if 'bias' in name:

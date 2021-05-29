@@ -7,7 +7,8 @@ from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
-
+from sklearn.utils.class_weight import compute_class_weight
+import numpy as np
 
 def pad_collate(batch):
     (xx, yy) = zip(*batch)
@@ -22,15 +23,16 @@ def pad_collate(batch):
 
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab,char_vocab: Vocab, n_ep=1,
-                 optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.01, part=None,
+                 optimizer='AdamW', train_batch_size=32, steps_to_eval=2500, lr=0.01, part=None,
                  output_path=None):
         # TODO Load for testing need to make surwe part 1 and 2 would still work.
         self.part = part
         self.model = model
         self.dev_batch_size = 128
+        self.vocab = vocab
+        self.label_weight = self.get_label_weight(train_data)
         self.train_data = DataLoader(train_data, batch_size=train_batch_size, collate_fn=pad_collate)
         self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
-        self.vocab = vocab
         self.char_vocab = char_vocab
         if optimizer == "SGD":
             self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0.001)
@@ -64,7 +66,6 @@ class Trainer:
         self.best_score = 0
 
     def train(self):
-        accuracy = {}
         for epoch in range(self.n_epochs):
             ###################
             # train the model #
@@ -78,9 +79,11 @@ class Trainer:
                 target = target.to(self.device)
                 # clear the gradients of all optimized variables
                 self.optimizer.zero_grad()
+                self.model.zero_grad()
                 # forward pass: compute predicted outputs by passing inputs to the model
                 output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
                 # calculate the loss
+
                 loss = self.loss_func(output, target.view(-1))
                 # backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
@@ -172,8 +175,6 @@ class Trainer:
         return [self.vocab.i2label[i] for i in prediction]
 
     def accuracy_token_tag(self, predict: List, target: List):
-        # predict = [self.vocab.i2label[i] for i in predict]
-        # target = [self.vocab.i2label[i] for i in target if i != -100] #remove padding
         predict, target = self.get_unpadded_samples(predict, target)
 
         all_pred = 0
@@ -212,4 +213,15 @@ class Trainer:
         pred_path = f"{self.suffix_run()}.tsv"
         with open(pred_path, mode='w') as f:
             f.writelines(res)
+
+    def get_label_weight(self, train_data):
+        try:
+            all_labels = np.array([self.vocab.label2i[item] for sublist in [t.labels for t in train_data.data] for item in sublist])
+            classes=np.unique(all_labels)
+            cw = compute_class_weight('balanced', classes=classes, y=all_labels)
+            return torch.Tensor(cw)
+
+        except Exception as e:
+            return torch.Tensor([0.5, 0.5])
+
 
