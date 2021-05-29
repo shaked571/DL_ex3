@@ -32,6 +32,7 @@ class Trainer:
         self.dev_batch_size = 128
         self.vocab = vocab
         self.label_weight = self.get_label_weight(train_data)
+        self.label_weight.to(self.device)
         self.train_data = DataLoader(train_data, batch_size=train_batch_size, collate_fn=pad_collate)
         self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.char_vocab = char_vocab
