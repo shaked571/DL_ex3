@@ -18,7 +18,7 @@ class BiLSTM(nn.Module, abc.ABC):
         self.hidden_dim = hidden_dim
         self.vocab_size = self.vocab.vocab_size
         self.sent_len = sent_len
-        self.embed_dim = embedding_dim
+        self.embed_dim = 50
         self.dropout_val = dropout
         self.embedding = self.get_embedding_layer()
 
