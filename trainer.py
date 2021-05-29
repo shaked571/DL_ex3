@@ -37,16 +37,16 @@ class Trainer:
         if optimizer == "SGD":
             self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0.001)
         elif optimizer == "AdamW":
-            self.optimizer = optim.AdamW(model.parameters())
+            self.optimizer = optim.AdamW(model.parameters(),  lr=lr)
         elif optimizer == "Adam":
-            self.optimizer = optim.Adam(model.parameters())
+            self.optimizer = optim.Adam(model.parameters(), lr=lr)
         else:
-            self.optimizer = optim.AdamW(model.parameters(), lr=lr)
+            self.optimizer = optim.AdamW(model.parameters())
             print("optimizer supports SGD, Adam, AdamW, Using by Default AdamW")
 
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
-        self.loss_func = nn.CrossEntropyLoss()
+        self.loss_func = nn.CrossEntropyLoss(weight=self.label_weight)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
         lstm_dim = None
@@ -218,7 +218,7 @@ class Trainer:
         try:
             all_labels = np.array([self.vocab.label2i[item] for sublist in [t.labels for t in train_data.data] for item in sublist])
             classes=np.unique(all_labels)
-            cw = compute_class_weight('balanced', classes=classes, y=all_labels)
+            cw = compute_class_weight(classes=classes, y=all_labels)
             return torch.Tensor(cw)
 
         except Exception as e:
