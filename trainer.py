@@ -85,7 +85,7 @@ class Trainer:
                 output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
                 # calculate the loss
 
-                loss = self.loss_func(output.to(self.device), target.view(-1).to(self.device))
+                loss = self.loss_func(output, target.view(-1))
                 # backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
                 # perform a single optimization step (parameter update)
