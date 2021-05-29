@@ -48,7 +48,7 @@ class Trainer:
 
         self.steps_to_eval = steps_to_eval
         self.n_epochs = n_ep
-        self.loss_func = nn.CrossEntropyLoss(weight=self.label_weight)
+        self.loss_func = nn.CrossEntropyLoss()
         self.model.to(self.device)
         lstm_dim = None
         try:
@@ -219,7 +219,7 @@ class Trainer:
         try:
             all_labels = np.array([self.vocab.label2i[item] for sublist in [t.labels for t in train_data.data] for item in sublist])
             classes=np.unique(all_labels)
-            cw = compute_class_weight('balanced', classes=classes, y=all_labels)
+            cw = compute_class_weight(None, classes=classes, y=all_labels)
             res = torch.Tensor(cw)
             res = res.to(self.device)
             return res
