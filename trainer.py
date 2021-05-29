@@ -221,12 +221,12 @@ class Trainer:
             classes=np.unique(all_labels)
             cw = compute_class_weight('balanced', classes=classes, y=all_labels)
             res = torch.Tensor(cw)
-            res.to(self.device)
+            res = res.to(self.device)
             return res
 
         except Exception as e:
             res = torch.Tensor([0.5, 0.5])
-            res.to(self.device)
+            res = res.to(self.device)
             return res
 
 
