@@ -25,7 +25,7 @@ class BiLSTM(nn.Module, abc.ABC):
         self.blstm = nn.LSTM(input_size=self.embed_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
-                            dropout=dropout,
+                            dropout=0.3,
                             bidirectional=True)
         self.linear = nn.Linear(2*hidden_dim, self.vocab.num_of_labels)
         for name, param in self.blstm.named_parameters():
@@ -89,7 +89,7 @@ class BiLSTMChar(BiLSTM):
         self.blstm = nn.LSTM(input_size=self.lstm_hidden_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
-                            dropout=dropout,
+                            dropout=0.3,
                             bidirectional=True)
 
 
@@ -199,7 +199,7 @@ class BiLSTMConcat(BiLSTM):
         self.blstm = nn.LSTM(input_size=self.embed_dim + lstm_hidden_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
-                            dropout=dropout,
+                            dropout=0.3,
                             bidirectional=True)
 
     def get_embedding_layer(self):

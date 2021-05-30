@@ -39,7 +39,7 @@ class Trainer:
         if optimizer == "SGD":
             self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0.001)
         elif optimizer == "AdamW":
-            self.optimizer = optim.AdamW(model.parameters(),  lr=lr)
+            self.optimizer = optim.AdamW(model.parameters(),  lr=lr, weight_decay=1e-4)
         elif optimizer == "Adam":
             self.optimizer = optim.Adam(model.parameters(), lr=lr)
         else:
