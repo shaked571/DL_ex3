@@ -71,7 +71,7 @@ class LSTMEmbedding(nn.Module):
     def __init__(self, vocab_size, embed_dim, hidden_dim):
         super(LSTMEmbedding, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
-        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim, dropout=0.3)
+        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim)
 
 
     def forward(self, x, x_lens):
@@ -92,6 +92,7 @@ class BiLSTMChar(BiLSTM):
                             num_layers=2,
                             dropout=0.3,
                             bidirectional=True)
+        self.dropout = nn.Dropout(0.3)
 
 
     def get_embedding_layer(self):
@@ -101,6 +102,7 @@ class BiLSTMChar(BiLSTM):
         embed_char, lens = self.transform_embed_char(x)
         embed_char = embed_char.to(self.device)
         ht = self.embedding(embed_char, lens)
+        ht = self.dropout(ht)
 
         embeds = ht
         embeds_p = self.repack(embeds, x_lens)
