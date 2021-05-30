@@ -7,7 +7,6 @@ from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
-from sklearn.utils.class_weight import compute_class_weight
 import numpy as np
 
 def pad_collate(batch):
@@ -31,8 +30,6 @@ class Trainer:
         self.model = model
         self.dev_batch_size = 4048
         self.vocab = vocab
-        self.label_weight = self.get_label_weight(train_data)
-
         self.train_data = DataLoader(train_data, batch_size=train_batch_size, collate_fn=pad_collate)
         self.dev_data = DataLoader(dev_data, batch_size=self.dev_batch_size,  collate_fn=pad_collate)
         self.char_vocab = char_vocab
@@ -220,19 +217,5 @@ class Trainer:
         pred_path = f"{self.suffix_run()}.tsv"
         with open(pred_path, mode='w') as f:
             f.writelines(res)
-
-    def get_label_weight(self, train_data):
-        try:
-            all_labels = np.array([self.vocab.label2i[item] for sublist in [t.labels for t in train_data.data] for item in sublist])
-            classes=np.unique(all_labels)
-            cw = compute_class_weight(None, classes=classes, y=all_labels)
-            res = torch.Tensor(cw)
-            res = res.to(self.device)
-            return res
-
-        except Exception as e:
-            res = torch.Tensor([0.5, 0.5])
-            res = res.to(self.device)
-            return res
 
 
