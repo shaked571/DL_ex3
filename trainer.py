@@ -23,7 +23,7 @@ def pad_collate(batch):
 
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab,char_vocab: Vocab, n_ep=1,
-                 optimizer='AdamW', train_batch_size=32, steps_to_eval=2500, lr=0.001, part=None,
+                 optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.001, part=None,
                  output_path=None):
         # TODO Load for testing need to make surwe part 1 and 2 would still work.
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -97,12 +97,10 @@ class Trainer:
                     print(f"in step: {(step+1)*self.train_data.batch_size} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
-                    self.evaluate_model((step+1)*self.train_data.batch_size *(epoch+1), "step", self.dev_data)
-                    self.evaluate_model((step+1)*self.train_data.batch_size *(epoch+1), "step", self.train_data, write=False)
+                    self.evaluate_model((step+1)*self.train_data.batch_size + epoch * len(self.train_data), "step", self.dev_data)
             print(f"in epoch: {epoch + 1} train loss: {train_loss}")
             self.writer.add_scalar('Loss/train', train_loss, epoch+1)
-            self.evaluate_model(epoch, "epoch", self.dev_data)
-            self.evaluate_model(epoch, "epoch", self.train_data,write=False)
+            self.evaluate_model((epoch+1) * len(self.train_data), "epoch", self.dev_data)
 
     def evaluate_model(self, step, stage, data_set,write=True):
         with torch.no_grad():
