@@ -77,8 +77,9 @@ class LSTMEmbedding(nn.Module):
     def forward(self, x, x_lens):
         out = self.embed(x)
         out = pack_padded_sequence(out, x_lens, batch_first=True, enforce_sorted=False)
-        out, (last_hidden_state, c_n) = self.lstm(out)
-        return c_n
+        out, (ht, c_n) = self.lstm(out)
+
+        return ht[-1]
 
 
 class BiLSTMChar(BiLSTM):
@@ -99,9 +100,9 @@ class BiLSTMChar(BiLSTM):
     def get_embed_vectors(self, x, x_lens):
         embed_char, lens = self.transform_embed_char(x)
         embed_char = embed_char.to(self.device)
-        c_n = self.embedding(embed_char, lens)
+        ht = self.embedding(embed_char, lens)
 
-        embeds = c_n[-1]
+        embeds = ht
         embeds_p = self.repack(embeds, x_lens)
         return embeds_p
 
