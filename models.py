@@ -71,7 +71,7 @@ class LSTMEmbedding(nn.Module):
     def __init__(self, vocab_size, embed_dim, hidden_dim):
         super(LSTMEmbedding, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
-        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim)
+        self.lstm = nn.LSTM(input_size=self.embed.embedding_dim, hidden_size=hidden_dim, dropout=0.3)
 
 
     def forward(self, x, x_lens):
