@@ -38,11 +38,10 @@ class BiLSTM(nn.Module, abc.ABC):
         embeds = self.get_embed_vectors(x, x_lens)
         x_packed = pack_padded_sequence(embeds, x_lens, batch_first=True, enforce_sorted=False)
         out, (last_hidden_state, c_n) = self.blstm(x_packed)
-        out, _ = pad_packed_sequence(out, batch_first=True)
-        out = self.linear(out)
-        # out = out[:, :max(x_lens)]
-        out =  out.flatten(0, 1)
-        return out
+        out2, _ = pad_packed_sequence(out, batch_first=True)
+        out3 = self.linear(out2)
+        out4 = out3.flatten(0, 1)
+        return out4
 
     def load_model(self, path):
         checkpoint = torch.load(path, map_location="cuda" if torch.cuda.is_available() else "cpu")

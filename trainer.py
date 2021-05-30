@@ -29,7 +29,7 @@ class Trainer:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.part = part
         self.model = model
-        self.dev_batch_size = 128
+        self.dev_batch_size = 4048
         self.vocab = vocab
         self.label_weight = self.get_label_weight(train_data)
 
@@ -97,36 +97,44 @@ class Trainer:
                     print(f"in step: {(step+1)*self.train_data.batch_size} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
-                    self.evaluate_model((step+1)*self.train_data.batch_size *(epoch+1), "step")
+                    self.evaluate_model((step+1)*self.train_data.batch_size *(epoch+1), "step", self.dev_data)
+                    self.evaluate_model((step+1)*self.train_data.batch_size *(epoch+1), "step", self.train_data, write=False)
             print(f"in epoch: {epoch + 1} train loss: {train_loss}")
             self.writer.add_scalar('Loss/train', train_loss, epoch+1)
-            self.evaluate_model(epoch, "epoch")
+            self.evaluate_model(epoch, "epoch", self.dev_data)
+            self.evaluate_model(epoch, "epoch", self.train_data,write=False)
 
-    def evaluate_model(self, step, stage):
+    def evaluate_model(self, step, stage, data_set,write=True):
         with torch.no_grad():
             self.model.eval()
             loss = 0
 
             prediction = []
             all_target = []
-            for eval_step, (data, target, data_lens, target_lens) in tqdm(enumerate(self.dev_data), total=len(self.dev_data),
+            for eval_step, (data, target, data_lens, target_lens) in tqdm(enumerate(data_set), total=len(data_set),
                                                   desc=f"dev step {step} loop"):
                 data = data.to(self.device)
                 target = target.to(self.device)
                 output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
 
-                loss = self.loss_func(output, target.view(-1))
+                loss = self.loss_func(output.detach(), target.view(-1))
                 loss += loss.item() * data.size(0)
                 _, predicted = torch.max(output, 1)
                 prediction += predicted.tolist()
                 all_target += target.view(-1).tolist()
             accuracy = self.accuracy_token_tag(prediction, all_target)
-            print(f'Accuracy/dev_{stage}: {accuracy}')
-            self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, step)
-            self.writer.add_scalar(f'Loss/dev_{stage}', loss, step)
-            if accuracy > self.best_score:
-                self.best_score = accuracy
-                torch.save(self.model.state_dict(), self.saved_model_path)
+            if write:
+                print(f'Accuracy/dev_{stage}: {accuracy}')
+
+                self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, step)
+                self.writer.add_scalar(f'Loss/dev_{stage}', loss, step)
+                if accuracy > self.best_score:
+                    self.best_score = accuracy
+                    torch.save(self.model.state_dict(), self.saved_model_path)
+
+            else:
+                print(f'Accuracy/train_{stage}: {accuracy}')
+
 
         self.model.train()
 
