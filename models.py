@@ -104,8 +104,7 @@ class BiLSTMChar(BiLSTM):
         ht = self.embedding(embed_char, lens)
         ht = self.dropout(ht)
 
-        embeds = ht
-        embeds_p = self.repack(embeds, x_lens)
+        embeds_p = self.repack(ht, x_lens)
         return embeds_p
 
     def split_by_lengths(self, seq, num):
