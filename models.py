@@ -92,8 +92,9 @@ class BiLSTMChar(BiLSTM):
     def get_embed_vectors(self, x, x_lens):
         embed_char, lens = self.transform_embed_char(x)
         ht = self.embedding(embed_char, lens)
-        split_words = torch.split(ht, x_lens, dim=0)
-        res = torch.nn.utils.rnn.pad_sequence(split_words, batch_first=True)
+        with torch.no_grad():
+            split_words = torch.split(ht, x_lens, dim=0)
+            res = torch.nn.utils.rnn.pad_sequence(split_words, batch_first=True)
 
         # embeds_p = pack_padded_sequence(embed_char, lens , batch_first=True)
         # embed_char = embeds_p.to(self.device)
@@ -128,7 +129,7 @@ class BiLSTMChar(BiLSTM):
             chars_tensor, l = self.get_chars_tensor(s, max_len_word)
             res += chars_tensor
             lens += l
-        res = torch.stack(res, )
+        res = torch.stack(res)
         return res, lens
 
     def get_chars_tensor(self, words, max_len) -> Tuple[Tensor, List[int]]:
