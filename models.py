@@ -13,6 +13,7 @@ from itertools import islice
 class BiLSTM(nn.Module, abc.ABC):
     def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
         super(BiLSTM, self).__init__()
+        torch.manual_seed(1)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.vocab = vocab
         self.hidden_dim = hidden_dim
