@@ -1,5 +1,7 @@
+import random
 from typing import Tuple, List
 
+import numpy as np
 import torch
 from torch import nn, Tensor
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
@@ -13,8 +15,8 @@ from itertools import islice
 class BiLSTM(nn.Module, abc.ABC):
     def __init__(self, embedding_dim: int, hidden_dim: int, vocab: Vocab, dropout=0.2, sent_len=128):
         super(BiLSTM, self).__init__()
-        torch.manual_seed(1)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.set_seed(1)
         self.vocab = vocab
         self.hidden_dim = hidden_dim
         self.vocab_size = self.vocab.vocab_size
@@ -26,7 +28,7 @@ class BiLSTM(nn.Module, abc.ABC):
         self.blstm = nn.LSTM(input_size=self.embed_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
-                            dropout=0.3,
+                            # dropout=0.3,
                             bidirectional=True)
         self.linear = nn.Linear(2*hidden_dim, self.vocab.num_of_labels)
         for name, param in self.blstm.named_parameters():
@@ -34,6 +36,13 @@ class BiLSTM(nn.Module, abc.ABC):
                 continue
             torch.nn.init.xavier_uniform_(param)
 
+    def set_seed(self, seed):
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+        if self.device == 'cuda':
+            torch.cuda.manual_seed_all(seed)
 
     def forward(self, x, x_lens):
         embeds = self.get_embed_vectors(x, x_lens)
