@@ -128,7 +128,7 @@ class BiLSTMChar(BiLSTM):
             chars_tensor, l = self.get_chars_tensor(s, max_len_word)
             res += chars_tensor
             lens += l
-        res = torch.stack(res)
+        res = torch.stack(res, )
         return res, lens
 
     def get_chars_tensor(self, words, max_len) -> Tuple[Tensor, List[int]]:
@@ -141,7 +141,7 @@ class BiLSTMChar(BiLSTM):
             lens.append(len(c_w))
             if len(c_w) < max_len:
                 c_w += [0] * (max_len - len(c_w))
-        chars_tensor = torch.tensor(chars_tensor).to(torch.int64)
+        chars_tensor = torch.tensor(chars_tensor).to(torch.int64).to(self.device)
         return chars_tensor, lens
 
 
