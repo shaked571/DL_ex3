@@ -1,15 +1,25 @@
 import argparse
 import torch
-
+import numpy as np
+import random
 from models import BiLSTMVanila, BiLSTMChar, BiLSTMSubWords, BiLSTMConcat
 from trainer import Trainer
 from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
 torch.manual_seed(1)
 
+def set_seed( seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    if torch.cuda.is_available() == 'cuda':
+        torch.cuda.manual_seed_all(seed)
+
 
 def main(mission, train_file_name, dev_file_name, task, output_path, optimizer='AdamW', epochs=1, l_r=0.001, batch_size=10,
          embedding_dim=100, hidden_dim=100, dropout=0.2, lstm_hidden_dim=50):
+    set_seed(1)
 
     sent_len = 120 if task == "ner" else 150
     chars_vocab = None
