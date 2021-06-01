@@ -115,7 +115,8 @@ class BiLSTMChar(BiLSTM):
         return out if not remain else out + torch.stack(remain)
 
     def repack(self, x, x_lens):
-        split_x = self.split_by_lengths(x, x_lens)
+
+        split_x = torch.split(x, x_lens, dim=0) #self.split_by_lengths(x, x_lens)
         return torch.nn.utils.rnn.pad_sequence(split_x, batch_first=True)
 
     def transform_embed_char(self, x):
