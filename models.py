@@ -91,9 +91,9 @@ class BiLSTMChar(BiLSTM):
         self.blstm = nn.LSTM(input_size=self.lstm_hidden_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
-                            dropout=0.3,
+                            # dropout=0.3,
                             bidirectional=True)
-        self.dropout = nn.Dropout(0.3)
+        # self.dropout = nn.Dropout(0.3)
 
 
     def get_embedding_layer(self):
@@ -103,7 +103,7 @@ class BiLSTMChar(BiLSTM):
         embed_char, lens = self.transform_embed_char(x)
         embed_char = embed_char.to(self.device)
         ht = self.embedding(embed_char, lens)
-        ht = self.dropout(ht)
+        # ht = self.dropout(ht)
 
         embeds_p = self.repack(ht, x_lens)
         return embeds_p
