@@ -30,10 +30,10 @@ class BiLSTM(nn.Module, abc.ABC):
                             # dropout=0.3,
                             bidirectional=True)
         self.linear = nn.Linear(2*hidden_dim, self.vocab.num_of_labels)
-        for name, param in self.blstm.named_parameters():
-            if 'bias' in name:
-                continue
-            torch.nn.init.xavier_uniform_(param)
+        # for name, param in self.blstm.named_parameters():
+        #     if 'bias' in name:
+        #         continue
+        #     torch.nn.init.xavier_uniform_(param)
 
     def forward(self, x, x_lens):
         embeds = self.get_embed_vectors(x, x_lens)
