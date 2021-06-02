@@ -198,8 +198,10 @@ class BiLSTMConcat(BiLSTM):
     def __init__(self, embedding_dim: int, hidden_dim: int, lstm_hidden_dim: int, vocab: Vocab, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
         super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
 
-        self.embedding_bilstm = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
-        self.chars_bilstm = LSTMEmbedding(chars_vocab.vocab_size, self.embed_dim, lstm_hidden_dim)
+        self.embedding_bilstm = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab,
+                                             dropout=dropout, sent_len=sent_len)
+        self.chars_bilstm = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim, lstm_hidden_dim=lstm_hidden_dim,
+                                       vocab=vocab, chars_vocab=chars_vocab, dropout=dropout, sent_len=sent_len)
         self.blstm = nn.LSTM(input_size=self.embed_dim + lstm_hidden_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,
@@ -210,8 +212,8 @@ class BiLSTMConcat(BiLSTM):
         return nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
 
     def get_embed_vectors(self, x, x_lens):
-        embed_vec = self.embedding_bilstm(x)
-        chars_vec = self.chars_bilstm(x, x_lens)
+        embed_vec = self.embedding_bilstm.get_embed_vectors(x, x_lens)
+        chars_vec = self.chars_bilstm.get_embed_vectors(x, x_lens)
         return torch.cat((embed_vec, chars_vec), dim=2)
 
 
