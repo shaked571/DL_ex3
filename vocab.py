@@ -48,9 +48,9 @@ class TokenVocab(Vocab):
             word, label = line.strip().split(self.separator)
             words.append(word)
             labels.add(label)
-        single_tokens = [k for k, v in Counter(words).items() if v == 1 ]
-        single_tokens.append(self.UNKNOWN_TOKEN)
-        words = single_tokens
+        not_single = [k for k, v in Counter(words).items() if v != 1 ]
+        not_single.append(self.UNKNOWN_TOKEN)
+        words = not_single
         labels.add('O')
         return words, labels
 

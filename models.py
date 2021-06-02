@@ -87,7 +87,7 @@ class BiLSTMChar(BiLSTM):
 
 
     def get_embedding_layer(self):
-        return LSTMEmbedding(self.vocab_size, self.embed_dim, self.lstm_hidden_dim)
+        return LSTMEmbedding(self.char_vocab.vocab_size, self.embed_dim, self.lstm_hidden_dim)
 
     def get_embed_vectors(self, x, x_lens):
         embed_char, lens = self.transform_embed_char(x)
