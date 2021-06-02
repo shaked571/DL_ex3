@@ -72,7 +72,7 @@ class LSTMEmbedding(nn.Module):
         out = pack_padded_sequence(out, x_lens, batch_first=True, enforce_sorted=False)
         _, (ht, c_n) = self.lstm(out)
 
-        return ht[-1]
+        return ht
 
 
 class BiLSTMChar(BiLSTM):
@@ -91,10 +91,17 @@ class BiLSTMChar(BiLSTM):
 
     def get_embed_vectors(self, x, x_lens):
         embed_char, lens = self.transform_embed_char(x)
+        batch, seq_len = x.size()
+
         ht = self.embedding(embed_char, lens)
-        with torch.no_grad():
-            split_words = torch.split(ht, x_lens, dim=0)
-            res = torch.nn.utils.rnn.pad_sequence(split_words, batch_first=True)
+        res = ht.new_zeros((batch, seq_len, self.lstm_hidden_dim))
+        total_l = 0
+        for i, l in enumerate(x_lens):
+            res[i, 0:l,:]= ht[:,total_l:total_l+1,:]
+            total_l+=1
+
+        # split_words = torch.split(ht, x_lens, dim=0)
+        # res = torch.nn.utils.rnn.pad_sequence(split_words, batch_first=True)
 
         # embeds_p = pack_padded_sequence(embed_char, lens , batch_first=True)
         # embed_char = embeds_p.to(self.device)
