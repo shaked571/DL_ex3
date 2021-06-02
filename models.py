@@ -78,8 +78,8 @@ class LSTMEmbedding(nn.Module):
 class BiLSTMChar(BiLSTM):
     def __init__(self, embedding_dim: int, hidden_dim: int, lstm_hidden_dim: int, vocab: Vocab, chars_vocab: CharsVocab, dropout=0.2, sent_len=128):
         self.lstm_hidden_dim = lstm_hidden_dim
-        super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
         self.char_vocab = chars_vocab
+        super().__init__(embedding_dim, hidden_dim, vocab, dropout, sent_len)
         self.blstm = nn.LSTM(input_size=self.lstm_hidden_dim,
                             hidden_size=hidden_dim,
                             num_layers=2,

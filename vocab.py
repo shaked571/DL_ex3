@@ -1,4 +1,5 @@
 import abc
+from collections import Counter
 
 
 class Vocab(abc.ABC):
@@ -30,12 +31,14 @@ class Vocab(abc.ABC):
 
 
 class TokenVocab(Vocab):
+
     def __init__(self, train_file: str, task: str):
         self.train_file = train_file
         super().__init__(task)
 
     def get_unique(self):
-        words = set()
+        words = []
+
         labels = set()
         with open(self.train_file) as f:
             lines = f.readlines()
@@ -43,9 +46,11 @@ class TokenVocab(Vocab):
             if line == "" or line == "\n":
                 continue
             word, label = line.strip().split(self.separator)
-            words.add(word)
+            words.append(word)
             labels.add(label)
-        words.update([self.UNKNOWN_TOKEN])
+        single_tokens = [k for k, v in Counter(words).items() if v == 1 ]
+        single_tokens.append(self.UNKNOWN_TOKEN)
+        words = single_tokens
         labels.add('O')
         return words, labels
 
