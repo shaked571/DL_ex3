@@ -141,7 +141,6 @@ class BiLSTMChar(BiLSTM):
     def get_chars_tensor(self, words, max_len) -> Tuple[Tensor, List[int]]:
         chars_tensor = []
         lens = []
-        max_len+=2 # Add <s> and <\s>
         for word in words:
             chars_indices = self.char_vocab.get_chars_indexes_by_word(word)
             chars_tensor.append(chars_indices)
