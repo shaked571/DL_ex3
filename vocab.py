@@ -1,4 +1,5 @@
 import abc
+from typing import Tuple
 
 
 class Vocab(abc.ABC):
@@ -10,6 +11,8 @@ class Vocab(abc.ABC):
         self.task = task
         self.separator = " " if self.task == "pos" else "\t"
         self.tokens, self.labels = self.get_unique()
+        self.tokens.update({"<s>", "<\s>"})
+
         self.tokens = list(self.tokens)
         self.tokens.insert(self.PAD_IDX, self.PAD_DUMMY)
         self.vocab_size = len(self.tokens)
@@ -25,7 +28,7 @@ class Vocab(abc.ABC):
         return self.token2i[self.UNKNOWN_TOKEN]
 
     @abc.abstractmethod
-    def get_unique(self):
+    def get_unique(self) -> Tuple[set, set]:
         pass
 
 
@@ -66,14 +69,16 @@ class CharsVocab(Vocab):
             if line == "" or line == "\n":
                 continue
             word, label = line.strip().split(self.separator)
-            chars.update([c for c in word])
-            labels.add(label)
 
+            chars.update([c for c in word if not c.isdigit()])
+            labels.add(label)
         labels.add('O')
         return chars, labels
 
     def get_chars_indexes_by_word(self, word):
         word_chars = [c for c in word]
+        word_chars.insert(0, '<s>')
+        word_chars.append('<\s>')
         indexes = []
         # add chars indexes
         for c in word_chars:
