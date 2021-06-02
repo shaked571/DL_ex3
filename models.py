@@ -100,7 +100,7 @@ class BiLSTMChar(BiLSTM):
         #     res[i, 0:l,:]= ht[:,total_l:total_l+1,:]
         #     total_l+=1
 
-        split_words = torch.split(ht, x_lens, dim=0)
+        split_words = torch.split(ht[-1], x_lens, dim=0)
         res = torch.nn.utils.rnn.pad_sequence(split_words, batch_first=True)
         # embeds_p = pack_padded_sequence(embed_char, lens , batch_first=True)
         # embed_char = embeds_p.to(self.device)
