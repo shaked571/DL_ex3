@@ -64,6 +64,7 @@ class Trainer:
         self.best_score = 0
 
     def train(self):
+        num_samples=0
         for epoch in range(self.n_epochs):
             ###################
             # train the model #
@@ -73,6 +74,7 @@ class Trainer:
             step_loss = 0
             self.model.train()  # prep model for training
             for step, (data, target, data_lens, target_lens) in tqdm(enumerate(self.train_data), total=len(self.train_data)):
+                num_samples += self.train_data.batch_size
                 data = data.to(self.device)
                 target = target.to(self.device)
                 # clear the gradients of all optimized variables
@@ -81,7 +83,6 @@ class Trainer:
                 # forward pass: compute predicted outputs by passing inputs to the model
                 output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
                 # calculate the loss
-
                 loss = self.loss_func(output, target.view(-1))
                 # backward pass: compute gradient of the loss with respect to model parameters
                 loss.backward()
@@ -90,14 +91,17 @@ class Trainer:
                 # update running training loss
                 train_loss += loss.item() * data.size(0)
                 step_loss += loss.item() * data.size(0)
-                if (step+1)*self.train_data.batch_size % self.steps_to_eval == 0:
+                if num_samples > self.steps_to_eval:
+                    num_samples = 0
                     print(f"in step: {(step+1)*self.train_data.batch_size} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
+                    print((step+1)*self.train_data.batch_size + epoch * len(self.train_data))
                     self.evaluate_model((step+1)*self.train_data.batch_size + epoch * len(self.train_data), "step", self.dev_data)
             print(f"in epoch: {epoch + 1} train loss: {train_loss}")
             self.writer.add_scalar('Loss/train', train_loss, epoch+1)
-            self.evaluate_model((epoch+1) * len(self.train_data), "epoch", self.dev_data)
+            print((epoch+1) * len(self.train_data) *self.train_data.batch_size)
+            self.evaluate_model((epoch+1) * len(self.train_data)*self.train_data.batch_size, "epoch", self.dev_data)
 
     def evaluate_model(self, step, stage, data_set,write=True):
         with torch.no_grad():
