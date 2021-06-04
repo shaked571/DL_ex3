@@ -1,7 +1,6 @@
 import os
 import torch
 from torch.utils.data import TensorDataset
-import itertools
 
 abspath = os.path.dirname(os.path.abspath(__file__))
 

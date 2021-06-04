@@ -9,8 +9,7 @@ from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
 
 
-
-def dump_test_file(test_prediction, test_file_path, seperator, output_name ):
+def dump_test_file(test_prediction, test_file_path, seperator, output_name):
     res = []
     cur_i = 0
     with open(test_file_path) as f:
@@ -22,19 +21,14 @@ def dump_test_file(test_prediction, test_file_path, seperator, output_name ):
             pred = f"{line.strip()}{seperator}{test_prediction[cur_i]}\n"
             res.append(pred)
             cur_i += 1
-    pred_path = f"{output_name}.tsv"
-    with open(pred_path, mode='w') as f:
+
+    with open(output_name, mode='w') as f:
         f.writelines(res)
 
 
-
-def main(mission, test_f_name, model_path, task, train_file
-        ):
-    embedding_dim=20
-    hidden_dim=200
-    dropout=0.2
-    sent_len=128
-    lstm_hidden_dim=50
+def main(mission, test_f_name, model_path, task, train_file, hidden_dim, lstm_hidden_dim, embedding_dim=100):
+    dropout = 0.2
+    sent_len = 128
     chars_vocab = None
     sub_words = None
 
@@ -75,7 +69,6 @@ def main(mission, test_f_name, model_path, task, train_file
     dump_test_file(prediction, test_f_name, vocab.separator, f"{mission}_{task}_hd{hidden_dim}_lhd{lstm_hidden_dim}")
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Aligner model')
     parser.add_argument('repr', help="repr need to be {a,b,c,d} when\n"
@@ -87,9 +80,14 @@ if __name__ == '__main__':
     parser.add_argument('modelFile', help="the model file.")
     parser.add_argument('-tf', '--train_file', help="the original train file.")
     parser.add_argument('-t', '--task', help="{pos, ner}")
+    parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=50, type=int)
+    parser.add_argument('-hd', '--hidden_dim', help='main hidden dimension value', default=50, type=int)
+
     args = parser.parse_args()
     main(mission=args.repr,
          test_f_name=args.testFile,
          model_path=args.modelFile,
          train_file=args.train_file,
-         task=args.task)
+         task=args.task,
+         lstm_hidden_dim=args.lstm_hidden_dim,
+         hidden_dim=args.hidden_dim)
