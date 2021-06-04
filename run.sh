@@ -9,7 +9,7 @@ do
     do
       for optimizer in AdamW
       do
-      for l_r in  0.001  0.003
+      for l_r in 0.003
       do
        for batch_size in 4 8 16
        do
