@@ -80,20 +80,20 @@ if __name__ == '__main__':
                                      "d: a concatenation of (a) and (b) followed by a linear layer.")
     parser.add_argument('trainFile', help="The input file to train on.")
     parser.add_argument('modelFile', help="the file to save the model.")
-    parser.add_argument('-dev', '--dev_file', help="evaluation (development) data set.")
-    parser.add_argument('-t', '--task', help="{pos, ner}")
+    parser.add_argument('devFile', help="evaluation (development) data set.")
+    parser.add_argument('task', help="{pos, ner}")
     parser.add_argument('-o', '--optimizer', type=str, default='AdamW')
     parser.add_argument('-e', '--epochs', help='Number of epochs', default=5, type=int)
     parser.add_argument('-s', '--sent_len', help='Max length of sentence', default=128, type=int)
     parser.add_argument('-l', '--learning_rate', help='Number of epochs', default=0.001, type=float)
     parser.add_argument('-b', '--batch_size', help='Number of epochs', default=0.001, type=int)
     parser.add_argument('-do', '--drop_out', help='fropout value', default=0.2, type=float)
-    parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=50, type=int)
-    parser.add_argument('-hd', '--hidden_dim', help='main hidden dimension value', default=50, type=int)
+    parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=200, type=int)
+    parser.add_argument('-hd', '--hidden_dim', help='main hidden dimension value', default=100, type=int)
     args = parser.parse_args()
     main(mission=args.repr,
          train_file_name=args.trainFile,
-         dev_file_name=args.dev_file,
+         dev_file_name=args.devFile,
          task=args.task,
          output_path=args.modelFile,
          optimizer=args.optimizer,

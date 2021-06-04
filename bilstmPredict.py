@@ -76,18 +76,18 @@ if __name__ == '__main__':
                                      "b: a character-level LSTM.\n"
                                      "c: the embeddings+subword representation used in assignment 2.\n"
                                      "d: a concatenation of (a) and (b) followed by a linear layer.")
-    parser.add_argument('testFile', help="The input file to test on.")
     parser.add_argument('modelFile', help="the model file.")
-    parser.add_argument('-tf', '--train_file', help="the original train file.")
-    parser.add_argument('-t', '--task', help="{pos, ner}")
-    parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=50, type=int)
-    parser.add_argument('-hd', '--hidden_dim', help='main hidden dimension value', default=50, type=int)
+    parser.add_argument('inputFile', help="The input file to test on.")
+    parser.add_argument('trainFile', help="the original train file.")
+    parser.add_argument('task', help="{pos, ner}")
+    parser.add_argument('-lhd', '--lstm_hidden_dim', help='lstm hidden dimension value', default=200, type=int)
+    parser.add_argument('-hd', '--hidden_dim', help='main hidden dimension value', default=100, type=int)
 
     args = parser.parse_args()
     main(mission=args.repr,
-         test_f_name=args.testFile,
+         test_f_name=args.inputFile,
          model_path=args.modelFile,
-         train_file=args.train_file,
+         train_file=args.trainFile,
          task=args.task,
          lstm_hidden_dim=args.lstm_hidden_dim,
          hidden_dim=args.hidden_dim)
