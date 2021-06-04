@@ -91,12 +91,12 @@ class Trainer:
                 # update running training loss
                 train_loss += loss.item() * data.size(0)
                 step_loss += loss.item() * data.size(0)
-                if num_samples > self.steps_to_eval:
+                if num_samples >= self.steps_to_eval:
                     num_samples = 0
                     print(f"in step: {(step+1)*self.train_data.batch_size} train loss: {step_loss}")
                     self.writer.add_scalar('Loss/train_step', step_loss, step * (epoch + 1))
                     step_loss = 0.0
-                    print((step+1)*self.train_data.batch_size + epoch * len(self.train_data))
+                    # print((step+1)*self.train_data.batch_size + epoch * len(self.train_data))
                     self.evaluate_model((step+1)*self.train_data.batch_size + epoch * len(self.train_data), "step", self.dev_data)
             print(f"in epoch: {epoch + 1} train loss: {train_loss}")
             self.writer.add_scalar('Loss/train', train_loss, epoch+1)
