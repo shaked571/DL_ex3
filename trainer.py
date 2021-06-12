@@ -1,7 +1,6 @@
 from typing import List, Optional
 import torch.nn as nn
 
-from bilstmPredict import dump_test_file
 from vocab import Vocab, SeqVocab
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -10,6 +9,24 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
+
+def dump_test_file(test_prediction, test_file_path, seperator, output_name):
+    res = []
+    cur_i = 0
+    with open(test_file_path) as f:
+        lines = f.readlines()
+    for line in lines:
+        if line == "" or line == "\n":
+            res.append(line)
+        else:
+            pred = f"{line.strip()}{seperator}{test_prediction[cur_i]}\n"
+            res.append(pred)
+            cur_i += 1
+
+    with open(output_name, mode='w') as f:
+        f.writelines(res)
+
+
 
 def pad_collate(batch):
     (xx, yy) = zip(*batch)
