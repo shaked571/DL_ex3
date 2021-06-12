@@ -6,8 +6,8 @@ from models import BiLSTMVanila, BiLSTMChar, BiLSTMSubWords, BiLSTMConcat
 from trainer import Trainer
 from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
-torch.manual_seed(1)
 import os
+
 def set_seed( seed):
     os.environ['CUBLAS_WORKSPACE_CONFIG']=':4096:8'
 
