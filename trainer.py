@@ -22,7 +22,7 @@ def pad_collate(batch):
 
 class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab, char_vocab: Vocab=None, n_ep=1,
-                 optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.001, part=None,
+                 optimizer='AdamW', train_batch_size=32, steps_to_eval=5000, lr=0.001, part=None,
                  output_path=None):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.part = part
