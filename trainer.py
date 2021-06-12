@@ -1,5 +1,7 @@
 from typing import List, Optional
 import torch.nn as nn
+
+from bilstmPredict import dump_test_file
 from vocab import Vocab, SeqVocab
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -149,6 +151,11 @@ class Trainer:
 
                         print("accutracy before re loading: ", accuracy)
                         print("accutracy after re loading: ", accuracy2)
+                        prediction += predicted.tolist()
+                test_prediction = [self.vocab.i2label[i] for i in prediction]
+
+                dump_test_file(test_prediction, self.dev_data.dataset.data_path, f"{self.saved_model_path}-dev_pred_{step}_{stage}")
+
             else:
                 print(f'Accuracy/train_{stage}: {accuracy}')
         self.model.train()
@@ -222,7 +229,7 @@ class Trainer:
             no_pad_target.append(self.vocab.i2label[t])
         return no_pad_predict, no_pad_target
 
-    def dump_test_file(self, test_prediction, test_file_path):
+    def dump_test_file(self, test_prediction, test_file_path, pred_path=None):
         res = []
         cur_i = 0
         with open(test_file_path) as f:
@@ -234,7 +241,8 @@ class Trainer:
                 pred = f"{line.strip()}{self.vocab.separator}{test_prediction[cur_i]}\n"
                 res.append(pred)
                 cur_i += 1
-        pred_path = f"{self.suffix_run()}.tsv"
+        if pred_path is None:
+            pred_path = f"{self.suffix_run()}.tsv"
         with open(pred_path, mode='w') as f:
             f.writelines(res)
 
