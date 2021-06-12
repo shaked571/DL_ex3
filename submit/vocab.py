@@ -11,7 +11,6 @@ class Vocab(abc.ABC):
         self.task = task
         self.separator = " " if self.task == "pos" else "\t"
         self.tokens, self.labels = self.get_unique()
-        self.tokens = list(self.tokens)
         self.tokens.insert(self.PAD_IDX, self.PAD_DUMMY)
         self.vocab_size = len(self.tokens)
         self.num_of_labels = len(self.labels)
@@ -38,8 +37,8 @@ class TokenVocab(Vocab):
 
     def get_unique(self):
         words = []
-
-        labels = set()
+        labels = []
+        seen_labels = set()
         with open(self.train_file) as f:
             lines = f.readlines()
         for line in lines:
@@ -47,11 +46,14 @@ class TokenVocab(Vocab):
                 continue
             word, label = line.strip().split(self.separator)
             words.append(word)
-            labels.add(label)
-        not_single = [k for k, v in Counter(words).items() if v != 1 ]
+            if label not in seen_labels: #to keep order
+                labels.append(label)
+                seen_labels.add(label)
+        not_single = [k for k, v in Counter(words).items() if v != 1]
         not_single.append(self.UNKNOWN_TOKEN)
         words = not_single
-        labels.add('O')
+        if 'O' not in seen_labels:
+            labels.append('O')
         return words, labels
 
 
@@ -61,8 +63,10 @@ class CharsVocab(Vocab):
         super().__init__(task)
 
     def get_unique(self):
-        chars = {self.UNKNOWN_TOKEN}
-        labels = set()
+        chars = [self.UNKNOWN_TOKEN]
+        seen_chars = set()
+        labels = []
+        seen_labels = set()
 
         with open(self.train_file) as f:
             lines = f.readlines()
@@ -71,10 +75,16 @@ class CharsVocab(Vocab):
             if line == "" or line == "\n":
                 continue
             word, label = line.strip().split(self.separator)
-            chars.update([c for c in word])
-            labels.add(label)
+            for c in word:
+                if c not in seen_chars:
+                    chars.append(c)
+                    seen_chars.add(c)
+            if label not in seen_labels: #to keep order
+                labels.append(label)
+                seen_labels.add(label)
 
-        labels.add('O')
+        if 'O' not in seen_labels:
+            labels.append('O')
         return chars, labels
 
     def get_chars_indexes_by_word(self, word):
@@ -113,17 +123,8 @@ class SubWords:
         self.i2prefix = {i: p for i, p in enumerate(self.prefix)}
 
     def get_unique(self):
-        chars = {self.UNKNOWN_SUB_WORD}
-        with open(self.train_file) as f:
-            lines = f.readlines()
+        pass
 
-        for line in lines:
-            if line == "" or line == "\n":
-                continue
-            word, _ = line.strip().split(self.separator)
-            chars.update([c for c in word])
-
-        return chars, _
 
     def get_sub_words_indexes_by_word(self, word):
         if word == self.PAD_DUMMY:
@@ -146,9 +147,10 @@ class SubWords:
         return prefix, suffix
 
     def get_prefix_and_suffix(self):
-        suffixes = {self.SHORT_SUB_WORD, self.UNKNOWN_SUB_WORD}
-        prefixes = {self.SHORT_SUB_WORD, self.UNKNOWN_SUB_WORD}
-
+        suffixes = [self.SHORT_SUB_WORD, self.UNKNOWN_SUB_WORD]
+        prefixes = [self.SHORT_SUB_WORD, self.UNKNOWN_SUB_WORD]
+        seen_pre = set()
+        seen_suf = set()
         with open(self.train_file) as f:
             lines = f.readlines()
 
@@ -161,10 +163,15 @@ class SubWords:
                 continue
 
             prefix, suffix = self.get_sub_words_by_word(word)
-            suffixes.add(suffix)
-            prefixes.add(prefix)
 
-        return list(prefixes), list(suffixes)
+            if suffix not in seen_suf:
+                suffixes.append(suffix)
+                seen_suf.add(suffix)
+            if prefix not in seen_pre:
+                prefixes.append(prefix)
+                seen_pre.add(prefix)
+
+        return prefixes, suffixes
 
 
 class SeqVocab(Vocab):
@@ -172,11 +179,11 @@ class SeqVocab(Vocab):
         super().__init__(task)
 
     def get_unique(self):
-        labels = {'0', '1'}
+        labels = ['0', '1']
         nums = [str(i) for i in range(1, 10)]
         char = ['a', 'b', 'c', 'd']
         char += nums
-        words = set(char)
+        words = char
 
         return words, labels
 
@@ -186,7 +193,7 @@ class Binary(Vocab):
         super().__init__(task)
 
     def get_unique(self):
-        labels = {'0', '1'}
+        labels = ['0', '1']
         words = ['0', '1', 'b']
         return words, labels
 
@@ -196,6 +203,6 @@ class Num(Vocab):
         super().__init__(task)
 
     def get_unique(self):
-        labels = {'0', '1'}
+        labels = ['0', '1']
         words = [str(i) for i in range(10)]
         return words, labels
