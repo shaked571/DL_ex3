@@ -28,7 +28,8 @@ def dump_test_file(test_prediction, test_file_path, seperator, output_name):
 
 def main(mission, test_f_name, model_path, task, train_file, hidden_dim, lstm_hidden_dim, embedding_dim=100):
     dropout = 0.2
-    sent_len = 128
+    sent_len = 120 if task == "ner" else 150
+
     chars_vocab = None
     sub_words = None
 
@@ -52,6 +53,7 @@ def main(mission, test_f_name, model_path, task, train_file, hidden_dim, lstm_hi
                              dropout=dropout, sent_len=sent_len)
     else:
         raise ValueError(f"Not supporting repr: {mission} see help for details.")
+
     model.load_model(model_path)
     test_df = TokenDataFile(task=task, data_fname=test_f_name, mission=mission, vocab=vocab, sub_words=sub_words,
                             chars_vocab=chars_vocab)

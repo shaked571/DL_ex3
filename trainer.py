@@ -128,6 +128,8 @@ class Trainer:
                 self.writer.add_scalar(f'Accuracy/dev_{stage}', accuracy, step)
                 self.writer.add_scalar(f'Loss/dev_{stage}', loss, step)
                 if accuracy > self.best_score:
+                    print("saving model...")
+                    print(f"in location: {self.saved_model_path}")
                     self.best_score = accuracy
                     torch.save(self.model.state_dict(), self.saved_model_path)
 
