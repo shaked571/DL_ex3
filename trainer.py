@@ -24,7 +24,6 @@ class Trainer:
     def __init__(self, model: nn.Module, train_data: Dataset, dev_data: Dataset, vocab: Vocab, char_vocab: Vocab=None, n_ep=1,
                  optimizer='AdamW', train_batch_size=32, steps_to_eval=500, lr=0.001, part=None,
                  output_path=None):
-        # TODO Load for testing need to make surwe part 1 and 2 would still work.
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.part = part
         self.model = model
@@ -132,11 +131,26 @@ class Trainer:
                     print(f"in location: {self.saved_model_path}")
                     self.best_score = accuracy
                     torch.save(self.model.state_dict(), self.saved_model_path)
+                    # self.model.load_model(self.saved_model_path)
+                    prediction = []
+                    all_target = []
+                    for eval_step, (data, target, data_lens, target_lens) in tqdm(enumerate(data_set), total=len(data_set),
+                                                                                  desc=f"dev step {step} loop"):
 
+                        data = data.to(self.device)
+                        target = target.to(self.device)
+                        output = self.model(data, data_lens)  # Eemnded Data Tensor size (1,5)
+                        loss = self.loss_func(output.detach(), target.view(-1))
+                        loss += loss.item() * data.size(0)
+                        _, predicted = torch.max(output, 1)
+                        prediction += predicted.tolist()
+                        all_target += target.view(-1).tolist()
+                        accuracy2 = self.accuracy_token_tag(prediction, all_target)
+
+                        print("accutracy before re loading: ", accuracy)
+                        print("accutracy after re loading: ", accuracy2)
             else:
                 print(f'Accuracy/train_{stage}: {accuracy}')
-
-
         self.model.train()
 
 
