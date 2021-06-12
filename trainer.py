@@ -171,7 +171,7 @@ class Trainer:
                         prediction += predicted.tolist()
                 test_prediction = [self.vocab.i2label[i] for i in prediction]
 
-                dump_test_file(test_prediction, self.dev_data.dataset.data_path, f"{self.saved_model_path}-dev_pred_{step}_{stage}")
+                dump_test_file(test_prediction, self.dev_data.dataset.data_path," ",  f"{self.saved_model_path}-dev_pred_{step}_{stage}")
 
             else:
                 print(f'Accuracy/train_{stage}: {accuracy}')
