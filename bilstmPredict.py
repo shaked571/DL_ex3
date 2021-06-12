@@ -26,28 +26,48 @@ def dump_test_file(test_prediction, test_file_path, seperator, output_name):
         f.writelines(res)
 
 
-def main(mission, test_f_name, model_path, task, train_file, hidden_dim, lstm_hidden_dim, embedding_dim=100):
+def split_by_mlen(batch, mlen):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(batch), mlen):
+        yield batch[i:i + mlen]
+
+
+def get_unpadded_pred(predicted, data_lens):
+    res = []
+    max_len = max(data_lens)
+    predicted = predicted.cpu().detach().tolist()
+    prediction_bulk = split_by_mlen(predicted, max_len) #[predicted[i::max_len] for i in range(max_len)]
+    for i, bulk in enumerate(prediction_bulk):
+        cur_sent = bulk[:data_lens[i]]
+        res+=cur_sent
+
+    return res
+
+
+
+
+def main(mission, test_f_name, model_path, task, train_file_name, hidden_dim, lstm_hidden_dim, embedding_dim=100):
     dropout = 0.2
     sent_len = 120 if task == "ner" else 150
 
     chars_vocab = None
     sub_words = None
 
-    vocab = TokenVocab(train_file, task)
+    vocab = TokenVocab(train_file_name, task)
     if mission == 'a':
         model = BiLSTMVanila(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, dropout=dropout,
                              sent_len=sent_len)
 
     elif mission == 'b':
-        chars_vocab = CharsVocab(train_file, task)
+        chars_vocab = CharsVocab(train_file_name, task)
         model = BiLSTMChar(embedding_dim=embedding_dim, hidden_dim=hidden_dim,  lstm_hidden_dim=lstm_hidden_dim, vocab=vocab, chars_vocab=chars_vocab,
                            dropout=dropout, sent_len=sent_len)
     elif mission == 'c':
-        sub_words = SubWords(train_file, task)
+        sub_words = SubWords(train_file_name, task)
         model = BiLSTMSubWords(embedding_dim=embedding_dim, hidden_dim=hidden_dim, vocab=vocab, sub_words=sub_words,
                                dropout=dropout, sent_len=sent_len)
     elif mission == 'd':
-        chars_vocab = CharsVocab(train_file, task)
+        chars_vocab = CharsVocab(train_file_name, task)
         model = BiLSTMConcat(embedding_dim=embedding_dim, hidden_dim=hidden_dim, lstm_hidden_dim=lstm_hidden_dim,
                              vocab=vocab, chars_vocab=chars_vocab,
                              dropout=dropout, sent_len=sent_len)
@@ -59,16 +79,16 @@ def main(mission, test_f_name, model_path, task, train_file, hidden_dim, lstm_hi
                             chars_vocab=chars_vocab)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    test = DataLoader(test_df, batch_size=128, collate_fn=pad_collate)
+    test = DataLoader(test_df, batch_size=1028, collate_fn=pad_collate)
     model.eval()
     prediction = []
     for step, (data, _, data_lens, _) in tqdm(enumerate(test), total=len(test), desc=f"test data"):
         data = data.to(device)
         output = model(data, data_lens)
         _, predicted = torch.max(output, 1)
-        prediction += predicted.tolist()
-    prediction = [vocab.i2label[i] for i in prediction]
-    dump_test_file(prediction, test_f_name, vocab.separator, f"{mission}_{task}_hd{hidden_dim}_lhd{lstm_hidden_dim}")
+        prediction += get_unpadded_pred(predicted, data_lens)
+    prediction_str = [vocab.i2label[i] for i in prediction]
+    dump_test_file(prediction_str, test_f_name, vocab.separator, f"{mission}_{task}_hd{hidden_dim}_lhd{lstm_hidden_dim}")
 
 
 if __name__ == '__main__':
@@ -89,7 +109,7 @@ if __name__ == '__main__':
     main(mission=args.repr,
          test_f_name=args.inputFile,
          model_path=args.modelFile,
-         train_file=args.trainFile,
+         train_file_name=args.trainFile,
          task=args.task,
          lstm_hidden_dim=args.lstm_hidden_dim,
          hidden_dim=args.hidden_dim)

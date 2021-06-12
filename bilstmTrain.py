@@ -8,6 +8,7 @@ from vocab import TokenVocab, CharsVocab, SubWords
 from DataFiles import TokenDataFile
 import os
 
+
 def set_seed( seed):
     os.environ['CUBLAS_WORKSPACE_CONFIG']=':4096:8'
 

@@ -57,7 +57,7 @@ class TokenDataFile(Dataset):
                     sentences.append(sent)
                     sent = []
             else:
-                sent.append(tuple(line.strip().split(self.separator)))
+                sent.append(tuple(line.strip().split_by_mlen(self.separator)))
         return sentences
 
     def get_examples_and_labels(self):
