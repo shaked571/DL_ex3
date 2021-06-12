@@ -11,8 +11,8 @@ from trainer import pad_collate
 torch.manual_seed(1)
 
 
-def main(train_file, dev_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001,embedding_dim=20, hidden_dim=200, n_epochs=1,
-         binaric=False, num=False):
+def main(train_file, dev_file, test_file, optimizer='AdamW', batch_size=10, l_r=0.001, embedding_dim=20, hidden_dim=200,
+         n_epochs=6, binaric=False, num=False):
     task = "language"
     if binaric:
         vocab = Binary("binary")
@@ -46,7 +46,7 @@ def main(train_file, dev_file, test_file, optimizer='AdamW', batch_size=10, l_r=
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('train_file',help="train file name", type=str)
+    parser.add_argument('train_file', help="train file name", type=str)
     parser.add_argument('dev_file', help="dev file name", type=str)
     parser.add_argument('test_file', help="test file name", type=str)
     parser.add_argument('-o', '--optimizer', type=str,default='AdamW', required=False)
